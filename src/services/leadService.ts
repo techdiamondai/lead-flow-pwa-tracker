@@ -1,3 +1,4 @@
+
 // Import necessary modules
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, LeadHistory, LeadStage, NewLead } from "@/models/Lead";
@@ -88,7 +89,7 @@ export async function createLead(lead: NewLead, userId: string): Promise<string 
     }
     
     // Create initial history entry
-    await logLeadHistory(data.id, data.current_stage, userId, "Lead created");
+    await logLeadHistory(data.id, stringToLeadStage(data.current_stage), userId, "Lead created");
     
     return data.id;
   } catch (error) {
@@ -136,7 +137,7 @@ export async function updateLead(
     if ((updates.current_stage && updates.current_stage !== currentLead.current_stage) || historyNote) {
       await logLeadHistory(
         id, 
-        updates.current_stage || currentLead.current_stage, 
+        updates.current_stage || stringToLeadStage(currentLead.current_stage), 
         userId, 
         historyNote || `Stage changed to ${getStageDisplayName(updates.current_stage as LeadStage)}`
       );
@@ -255,7 +256,7 @@ export async function transferLeads(leadIds: string[], newUserId: string, curren
       if (lead) {
         await logLeadHistory(
           leadId,
-          lead.current_stage,
+          stringToLeadStage(lead.current_stage),
           currentUserId,
           `Lead transferred to another user`
         );
