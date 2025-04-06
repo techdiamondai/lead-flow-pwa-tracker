@@ -6,6 +6,10 @@ import { AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/hooks/toast";
 
+interface GetFunctionExistsParams {
+  function_name: string;
+}
+
 export const SupabaseConnectionStatus: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
@@ -40,9 +44,9 @@ export const SupabaseConnectionStatus: React.FC = () => {
       // This is a simple way to check if the trigger works
       // We'll try to see if the on_auth_user_created trigger exists by querying
       // for the handle_new_user function
-      const { data, error } = await supabase.rpc('get_function_exists', { 
+      const { data, error } = await supabase.rpc<boolean>('get_function_exists', { 
         function_name: 'handle_new_user' 
-      } as unknown as Record<string, unknown>);
+      } as GetFunctionExistsParams);
       
       if (error) {
         console.error("Error checking trigger:", error);
