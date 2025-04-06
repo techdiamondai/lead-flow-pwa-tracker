@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -126,17 +127,6 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
-// Create a separate context for the toast state
-const ToastContext = React.createContext<{
-  toasts: ToasterToast[]
-  toast: (props: Omit<ToasterToast, "id">) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void }
-  dismiss: (toastId?: string) => void
-}>({
-  toasts: [],
-  toast: () => ({ id: "", dismiss: () => {}, update: () => {} }),
-  dismiss: () => {},
-})
-
 // Initial state
 const initialState: State = { toasts: [] }
 
@@ -152,6 +142,17 @@ function dispatch(action: Action) {
     listener(memoryState)
   })
 }
+
+// Create a separate context for the toast state
+const ToastContext = React.createContext<{
+  toasts: ToasterToast[]
+  toast: (props: Omit<ToasterToast, "id">) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void }
+  dismiss: (toastId?: string) => void
+}>({
+  toasts: [],
+  toast: () => ({ id: "", dismiss: () => {}, update: () => {} }),
+  dismiss: () => {},
+})
 
 type Toast = Omit<ToasterToast, "id">
 
