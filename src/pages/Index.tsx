@@ -1,67 +1,317 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  ChevronDown, 
-  Users, 
-  LineChart, 
-  BarChart3, 
-  ArrowRight, 
-  Check, 
-  LayoutDashboard,
-  ShieldCheck
+  ChevronRight, 
+  Check,
+  Stars,
+  BarChart3,
+  Users,
+  LineChart,
+  Settings,
+  Globe,
+  Layers,
+  MessageSquare,
+  Zap,
+  Award
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState("sales");
+
+  const tabs = [
+    { id: "sales", label: "Sales" },
+    { id: "marketing", label: "Marketing" },
+    { id: "service", label: "Service" },
+    { id: "operations", label: "Operations" }
+  ];
+
+  const features = [
+    { 
+      icon: <Users className="h-6 w-6 text-blue-600" />, 
+      title: "Contact Management", 
+      description: "Store and manage your customer contacts all in one place" 
+    },
+    { 
+      icon: <LineChart className="h-6 w-6 text-blue-600" />, 
+      title: "Pipeline Management", 
+      description: "Visualize your sales pipeline and track opportunities" 
+    },
+    { 
+      icon: <BarChart3 className="h-6 w-6 text-blue-600" />, 
+      title: "Insightful Analytics", 
+      description: "Get detailed reports and actionable insights" 
+    },
+    { 
+      icon: <Settings className="h-6 w-6 text-blue-600" />, 
+      title: "Workflow Automation", 
+      description: "Automate repetitive tasks and boost productivity" 
+    }
+  ];
+
+  const testimonials = [
+    {
+      quote: "LeadFlow CRM has revolutionized how we manage our customer relationships.",
+      author: "Sarah Johnson",
+      position: "Sales Director, TechCorp"
+    },
+    {
+      quote: "We've increased our conversion rates by 35% since implementing LeadFlow CRM.",
+      author: "Michael Chen",
+      position: "CEO, GrowthSmart"
+    },
+    {
+      quote: "The analytics and reporting features provide insights we never had before.",
+      author: "Jessica Williams",
+      position: "Marketing Head, InnovateX"
+    }
+  ];
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50/30 to-purple-50/30" />
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-blue-400/30 to-indigo-500/30 rounded-full filter blur-3xl opacity-80 -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/30 to-purple-500/30 rounded-full filter blur-3xl opacity-80 translate-y-1/2 -translate-x-1/3" />
+      <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white">
+        <div className="container mx-auto px-4 py-16 md:py-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <div className="mb-6">
+                <span className="bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-full">
+                  #1 CRM Software
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                Convert More Leads, Close More Deals
+              </h1>
+              <p className="text-lg md:text-xl mb-8 text-blue-100">
+                The complete CRM platform to acquire, manage, and retain customers with ease.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                {isAuthenticated ? (
+                  <Button asChild size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 font-medium">
+                    <Link to="/dashboard">
+                      Go to Dashboard
+                      <ChevronRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 font-medium">
+                      <Link to="/register">
+                        Start Free Trial
+                        <ChevronRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                      <Link to="/login">
+                        Sign In
+                      </Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="mt-8 flex items-center gap-2 text-sm">
+                <Check className="h-4 w-4 text-blue-300" />
+                <span className="text-blue-100">No credit card required</span>
+                <span className="mx-2 text-blue-400">•</span>
+                <Check className="h-4 w-4 text-blue-300" />
+                <span className="text-blue-100">Free 15-day trial</span>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+                  alt="Dashboard preview" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="absolute -bottom-6 -right-6 bg-blue-600 rounded-full p-6 shadow-lg hidden md:block">
+                <Stars className="h-12 w-12 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats Banner */}
+        <div className="bg-blue-950/70 backdrop-blur-sm py-6">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-3xl font-bold text-white mb-1">10,000+</div>
+                <div className="text-blue-200">Businesses</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white mb-1">150+</div>
+                <div className="text-blue-200">Countries</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white mb-1">35%</div>
+                <div className="text-blue-200">Avg. Growth</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white mb-1">24/7</div>
+                <div className="text-blue-200">Support</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
-              Effortlessly Manage Your Leads and Drive Growth
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl">
-              LeadFlow CRM helps you track, nurture, and convert leads with powerful tools designed to streamline your sales process and boost conversion rates.
+      {/* Tabs Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">CRM Solutions for Every Team</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Tailored tools and features designed specifically for different departments
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              {isAuthenticated ? (
-                <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                  <Link to="/dashboard">
-                    Go to Dashboard
-                    <LayoutDashboard className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              ) : (
+          </div>
+
+          <div className="flex flex-wrap justify-center mb-10 gap-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`px-6 py-3 rounded-full font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              {activeTab === "sales" && (
                 <>
-                  <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                    <Link to="/login">
-                      Get Started
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline">
-                    <Link to="/register">
-                      Create Account
-                    </Link>
-                  </Button>
+                  <h3 className="text-2xl font-bold mb-4">Boost Your Sales Performance</h3>
+                  <p className="text-gray-600 mb-6">
+                    Track deals, manage pipelines, and close more sales with our powerful sales CRM tools.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Complete sales pipeline visibility</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Sales forecasting and analytics</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Email tracking and templates</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Automated lead scoring</span>
+                    </li>
+                  </ul>
                 </>
               )}
+              {activeTab === "marketing" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-4">Streamline Your Marketing Efforts</h3>
+                  <p className="text-gray-600 mb-6">
+                    Capture, nurture and convert leads with integrated marketing automation tools.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Campaign management and tracking</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Email marketing automation</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Lead generation forms</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Marketing analytics and ROI tracking</span>
+                    </li>
+                  </ul>
+                </>
+              )}
+              {activeTab === "service" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-4">Deliver Outstanding Customer Service</h3>
+                  <p className="text-gray-600 mb-6">
+                    Provide exceptional support and build long-lasting customer relationships.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Help desk and ticketing system</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Knowledge base management</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Customer satisfaction surveys</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>SLA management and tracking</span>
+                    </li>
+                  </ul>
+                </>
+              )}
+              {activeTab === "operations" && (
+                <>
+                  <h3 className="text-2xl font-bold mb-4">Optimize Your Business Operations</h3>
+                  <p className="text-gray-600 mb-6">
+                    Streamline workflows and improve efficiency across your entire organization.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Process automation tools</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Resource management</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Project tracking and management</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-1 mr-2" />
+                      <span>Operational reporting and analytics</span>
+                    </li>
+                  </ul>
+                </>
+              )}
+              
+              <div className="mt-8">
+                <Button asChild>
+                  <Link to={isAuthenticated ? "/dashboard" : "/register"}>
+                    Get Started
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="mt-12">
-              <Button variant="ghost" size="sm" className="flex items-center text-gray-500 gap-1">
-                Explore Features
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+            
+            <div className="relative">
+              <div className="bg-white rounded-lg shadow-lg p-2 md:p-4">
+                <img 
+                  src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+                  alt="Feature preview" 
+                  className="w-full h-auto rounded"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -71,152 +321,162 @@ const Index: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Everything You Need to Convert Leads</h2>
+            <h2 className="text-3xl font-bold mb-4">Powerful Features to Grow Your Business</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our comprehensive set of tools helps you track leads from first contact to closed deal
+              Everything you need to manage your customer relationships effectively
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100">
-              <div className="bg-blue-100 text-blue-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
-                <Users className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Lead Management</h3>
-              <p className="text-gray-600">
-                Easily organize, track, and manage your leads through every stage of your sales pipeline
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-100">
-              <div className="bg-indigo-100 text-indigo-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
-                <LineChart className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Sales Analytics</h3>
-              <p className="text-gray-600">
-                Gain valuable insights with detailed analytics on your sales performance and lead conversion
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl shadow-sm border border-purple-100">
-              <div className="bg-purple-100 text-purple-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
-                <BarChart3 className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Performance Tracking</h3>
-              <p className="text-gray-600">
-                Monitor team performance, identify bottlenecks, and optimize your sales process
-              </p>
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="mb-4 bg-blue-50 p-3 rounded-lg w-12 h-12 flex items-center justify-center">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Security & Login Section */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+      {/* Testimonials */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="mb-6 mx-auto bg-blue-100 text-blue-700 p-3 rounded-full w-16 h-16 flex items-center justify-center">
-              <ShieldCheck className="h-8 w-8" />
-            </div>
-            <h2 className="text-3xl font-bold mb-4">Secure Authentication System</h2>
-            <p className="text-gray-600 mb-8">
-              Our platform features robust user authentication with JWT security, role-based access control, and account management
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Trusted by Businesses Worldwide</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              See what our customers have to say about LeadFlow CRM
             </p>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-green-500" />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((item, index) => (
+              <Card key={index} className="bg-white shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex mb-4 text-yellow-400">
+                    <Stars className="h-5 w-5" />
+                    <Stars className="h-5 w-5" />
+                    <Stars className="h-5 w-5" />
+                    <Stars className="h-5 w-5" />
+                    <Stars className="h-5 w-5" />
                   </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold">User Registration</h3>
-                    <p className="text-gray-600 text-sm">Create new accounts with secure password hashing</p>
+                  <p className="italic mb-6">"{item.quote}"</p>
+                  <div>
+                    <p className="font-semibold">{item.author}</p>
+                    <p className="text-sm text-gray-600">{item.position}</p>
                   </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Integration and Global Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-900 to-indigo-900 text-white">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold mb-6">Connect with Your Favorite Tools</h2>
+              <p className="text-lg text-blue-100 mb-6">
+                LeadFlow CRM integrates seamlessly with over 100+ business applications, making it easy to connect your entire tech stack.
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center">
+                  <Globe className="h-8 w-8" />
                 </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold">Password Recovery</h3>
-                    <p className="text-gray-600 text-sm">Easy password reset functionality</p>
-                  </div>
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center">
+                  <Layers className="h-8 w-8" />
                 </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold">Role-Based Access</h3>
-                    <p className="text-gray-600 text-sm">Admin and user role separation</p>
-                  </div>
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="h-8 w-8" />
                 </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Check className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold">Protected Routes</h3>
-                    <p className="text-gray-600 text-sm">Secure access to authorized content</p>
-                  </div>
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center">
+                  <Zap className="h-8 w-8" />
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center">
+                  <Award className="h-8 w-8" />
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center text-lg font-bold">
+                  100+
                 </div>
               </div>
-              
-              {!isAuthenticated && (
-                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                  <Button asChild>
-                    <Link to="/login">Login to Your Account</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/register">Create New Account</Link>
-                  </Button>
+              <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Link to="/register">
+                  View All Integrations
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+            <div className="relative">
+              <div className="bg-blue-800 rounded-lg p-8 shadow-xl">
+                <h3 className="text-xl font-semibold mb-4">Global CRM Solution</h3>
+                <p className="mb-6">
+                  Trusted by businesses in over 150 countries around the world.
+                </p>
+                <div className="aspect-[16/9] bg-blue-700/50 rounded-lg overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+                    alt="Global map" 
+                    className="w-full h-full object-cover opacity-70"
+                  />
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Lead Management?</h2>
-          <p className="mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands of businesses that use LeadFlow CRM to convert more leads and grow their sales.
           </p>
-          {isAuthenticated ? (
-            <Button asChild size="lg" variant="secondary">
-              <Link to="/dashboard">Go to Dashboard</Link>
-            </Button>
-          ) : (
-            <Button asChild size="lg" variant="secondary">
-              <Link to="/register">Get Started For Free</Link>
-            </Button>
-          )}
+          <div className="flex flex-wrap justify-center gap-4">
+            {isAuthenticated ? (
+              <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                <Link to="/dashboard">Go to Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                  <Link to="/register">Start Your Free Trial</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link to="/login">Sign In</Link>
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="mt-6 text-sm text-gray-500">
+            No credit card required • 15-day free trial • Cancel anytime
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold text-white mb-4">LeadFlow CRM</h3>
               <p className="text-gray-400">
-                Powerful lead management solution for growing businesses
+                The complete CRM solution for growing businesses
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-white mb-4">Features</h4>
+              <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white">Lead Management</a></li>
-                <li><a href="#" className="hover:text-white">Sales Pipeline</a></li>
-                <li><a href="#" className="hover:text-white">Analytics</a></li>
-                <li><a href="#" className="hover:text-white">Reporting</a></li>
+                <li><a href="#" className="hover:text-white">Features</a></li>
+                <li><a href="#" className="hover:text-white">Pricing</a></li>
+                <li><a href="#" className="hover:text-white">Integrations</a></li>
+                <li><a href="#" className="hover:text-white">Updates</a></li>
               </ul>
             </div>
             <div>
