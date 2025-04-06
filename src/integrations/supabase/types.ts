@@ -9,7 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      lead_history: {
+        Row: {
+          id: string
+          lead_id: string
+          notes: string | null
+          stage: string
+          timestamp: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          notes?: string | null
+          stage: string
+          timestamp?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          notes?: string | null
+          stage?: string
+          timestamp?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          address: string | null
+          assigned_to: string | null
+          company: string
+          created_at: string
+          created_by: string | null
+          current_stage: string
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          assigned_to?: string | null
+          company: string
+          created_at?: string
+          created_by?: string | null
+          current_stage?: string
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          assigned_to?: string | null
+          company?: string
+          created_at?: string
+          created_by?: string | null
+          current_stage?: string
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

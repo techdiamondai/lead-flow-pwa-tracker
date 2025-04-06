@@ -4,15 +4,16 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { LeadList } from "@/components/LeadList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { MigrationDialog } from "@/components/MigrationDialog";
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="container px-4 py-6 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name}</h1>
+          <h1 className="text-3xl font-bold">Welcome back, {profile?.name}</h1>
           <p className="text-muted-foreground">
             Here's an overview of your leads and activities
           </p>
@@ -34,6 +35,9 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Migration dialog for transferring local data to Supabase */}
+      <MigrationDialog />
     </div>
   );
 };
