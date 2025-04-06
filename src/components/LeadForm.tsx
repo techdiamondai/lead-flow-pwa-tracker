@@ -36,8 +36,8 @@ export const LeadForm: React.FC<LeadFormProps> = ({
     company: lead?.company || "",
     position: lead?.position || "",
     address: lead?.address || "",
-    currentStage: lead?.currentStage || "new",
-    assignedTo: lead?.assignedTo || (user?.id || ""),
+    current_stage: lead?.current_stage || "new",
+    assigned_to: lead?.assigned_to || (user?.id || ""),
     notes: lead?.notes || ""
   });
   
@@ -51,7 +51,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({
   const handleStageChange = (value: LeadStage) => {
     setFormData({
       ...formData,
-      currentStage: value
+      current_stage: value
     });
   };
   
@@ -181,9 +181,9 @@ export const LeadForm: React.FC<LeadFormProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="currentStage">Stage</Label>
+              <Label htmlFor="current_stage">Stage</Label>
               <Select
-                value={formData.currentStage}
+                value={formData.current_stage}
                 onValueChange={(value) => handleStageChange(value as LeadStage)}
               >
                 <SelectTrigger>

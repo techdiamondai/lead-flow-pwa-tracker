@@ -35,7 +35,7 @@ export async function getLeads(): Promise<Lead[]> {
       })
     );
 
-    return leadsWithHistory;
+    return leadsWithHistory as Lead[];
   } catch (error) {
     console.error("Exception fetching leads:", error);
     return [];
@@ -113,7 +113,7 @@ export async function createLead(leadData: NewLead, userId: string): Promise<str
       // We still return the lead ID since the lead was created successfully
     }
     
-    return newLead.id;
+    return newLead?.id;
   } catch (error) {
     console.error("Exception creating lead:", error);
     return undefined;

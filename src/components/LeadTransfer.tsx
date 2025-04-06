@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -23,7 +24,7 @@ interface User {
 }
 
 interface LeadTransferProps {
-  selectedLeads: number[];
+  selectedLeads: string[];
   onTransferComplete?: () => void;
 }
 

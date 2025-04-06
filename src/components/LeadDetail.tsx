@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ export const LeadDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [assignedToName, setAssignedToName] = useState<string>("");
+  const [createdByName, setCreatedByName] = useState<string>("");
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,11 +31,18 @@ export const LeadDetail = () => {
       if (!id) return;
       
       try {
-        const leadId = parseInt(id, 10);
-        const leadData = await getLead(leadId);
+        const leadData = await getLead(id);
         
         if (leadData) {
           setLead(leadData);
+          
+          // Fetch user names outside of the JSX rendering
+          if (leadData.assigned_to) {
+            getUserNameById(leadData.assigned_to).then(setAssignedToName);
+          }
+          if (leadData.created_by) {
+            getUserNameById(leadData.created_by).then(setCreatedByName);
+          }
         } else {
           toast({
             title: "Lead not found",
@@ -65,8 +75,7 @@ export const LeadDetail = () => {
     
     setIsDeleting(true);
     try {
-      const leadId = parseInt(id, 10);
-      const success = await deleteLead(leadId);
+      const success = await deleteLead(id);
       
       if (success) {
         toast({
@@ -154,7 +163,7 @@ export const LeadDetail = () => {
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
               <span>Lead Information</span>
-              <Badge>{getStageDisplayName(lead.currentStage)}</Badge>
+              <Badge>{getStageDisplayName(lead.current_stage)}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -190,16 +199,16 @@ export const LeadDetail = () => {
               <h3 className="text-sm font-medium text-muted-foreground">Lead Status</h3>
               <div className="mt-2 space-y-2">
                 <p>
-                  <span className="font-medium">Created:</span> {formatDate(lead.created)}
+                  <span className="font-medium">Created:</span> {formatDate(lead.created_at)}
                 </p>
                 <p>
-                  <span className="font-medium">Last Updated:</span> {formatDate(lead.updated)}
+                  <span className="font-medium">Last Updated:</span> {formatDate(lead.updated_at)}
                 </p>
                 <p>
-                  <span className="font-medium">Created by:</span> {getUserNameById(lead.createdBy)}
+                  <span className="font-medium">Created by:</span> {createdByName}
                 </p>
                 <p>
-                  <span className="font-medium">Assigned to:</span> {getUserNameById(lead.assignedTo)}
+                  <span className="font-medium">Assigned to:</span> {assignedToName}
                 </p>
               </div>
             </div>
@@ -218,26 +227,36 @@ export const LeadDetail = () => {
             <CardTitle>Lead History</CardTitle>
           </CardHeader>
           <CardContent>
-            {lead.history.length > 0 ? (
+            {lead.history && lead.history.length > 0 ? (
               <div className="space-y-4">
-                {lead.history.map((entry, index) => (
-                  <div key={entry.id} className="space-y-2">
-                    {index > 0 && <Separator />}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2">
-                      <div>
-                        <Badge variant="outline">{getStageDisplayName(entry.stage)}</Badge>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {formatDate(entry.timestamp)} by {getUserNameById(entry.updatedBy)}
-                        </p>
-                      </div>
-                      {entry.notes && (
-                        <div className="mt-2 sm:mt-0">
-                          <p className="text-sm">{entry.notes}</p>
+                {lead.history.map((entry, index) => {
+                  const [userNameState, setUserNameState] = useState<string>("");
+                  
+                  useEffect(() => {
+                    if (entry.updated_by) {
+                      getUserNameById(entry.updated_by).then(setUserNameState);
+                    }
+                  }, [entry.updated_by]);
+                  
+                  return (
+                    <div key={entry.id} className="space-y-2">
+                      {index > 0 && <Separator />}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2">
+                        <div>
+                          <Badge variant="outline">{getStageDisplayName(entry.stage)}</Badge>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {formatDate(entry.timestamp)} by {userNameState || "Unknown User"}
+                          </p>
                         </div>
-                      )}
+                        {entry.notes && (
+                          <div className="mt-2 sm:mt-0">
+                            <p className="text-sm">{entry.notes}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-muted-foreground">No history entries found.</p>

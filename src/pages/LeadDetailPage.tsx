@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { LeadDetail } from "@/components/LeadDetail";
@@ -15,6 +16,8 @@ const LeadDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [lead, setLead] = useState<Lead | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [createdByName, setCreatedByName] = useState<string>("");
+  const [assignedToName, setAssignedToName] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -23,9 +26,17 @@ const LeadDetailPage: React.FC = () => {
       if (!id) return;
       
       try {
-        const leadData = await getLead(parseInt(id));
+        const leadData = await getLead(id);
         if (leadData) {
           setLead(leadData);
+
+          // Fetch user names outside of rendering
+          if (leadData.created_by) {
+            getUserNameById(leadData.created_by).then(setCreatedByName);
+          }
+          if (leadData.assigned_to) {
+            getUserNameById(leadData.assigned_to).then(setAssignedToName);
+          }
         } else {
           toast({
             title: "Lead not found",
@@ -52,7 +63,7 @@ const LeadDetailPage: React.FC = () => {
   const handleTransferComplete = () => {
     // Refresh lead data
     if (id) {
-      getLead(parseInt(id)).then(leadData => {
+      getLead(id).then(leadData => {
         if (leadData) setLead(leadData);
       });
     }
@@ -108,13 +119,13 @@ const LeadDetailPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                 <CardTitle className="text-2xl font-bold">{lead.name}</CardTitle>
                 <Badge className="mt-2 sm:mt-0 w-fit">
-                  {getStageDisplayName(lead.currentStage)}
+                  {getStageDisplayName(lead.current_stage)}
                 </Badge>
               </div>
               <div className="text-muted-foreground flex flex-col gap-1 mt-2">
                 <div className="text-sm">Company: {lead.company}</div>
-                <div className="text-sm">Created by: {getUserNameById(lead.createdBy)}</div>
-                <div className="text-sm">Assigned to: {getUserNameById(lead.assignedTo)}</div>
+                <div className="text-sm">Created by: {createdByName}</div>
+                <div className="text-sm">Assigned to: {assignedToName}</div>
               </div>
             </CardHeader>
           </Card>

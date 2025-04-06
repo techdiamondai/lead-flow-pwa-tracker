@@ -33,7 +33,6 @@ const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
   
-  // Load registered users for user info
   useEffect(() => {
     const storedUsers = localStorage.getItem("registered_users");
     if (storedUsers) {
@@ -41,13 +40,11 @@ const AdminPage: React.FC = () => {
     }
   }, []);
   
-  // Helper to get user name by ID
   const getUserNameById = (userId: string): string => {
     const foundUser = registeredUsers.find(u => u.id === userId);
     return foundUser ? foundUser.name : `User ID: ${userId}`;
   };
   
-  // Fetch all leads for admin
   useEffect(() => {
     const fetchAllLeads = async () => {
       try {
@@ -72,25 +69,21 @@ const AdminPage: React.FC = () => {
     }
   }, [isAdmin, navigate, toast]);
   
-  // Calculate statistics for admin dashboard
   const totalLeads = leads.length;
   
-  // Count leads by stage
   const stageCount: Record<string, number> = {};
   leads.forEach(lead => {
-    stageCount[lead.currentStage] = (stageCount[lead.currentStage] || 0) + 1;
+    stageCount[lead.current_stage] = (stageCount[lead.current_stage] || 0) + 1;
   });
   
-  // Count leads by assignee
   const assigneeCount: Record<string, number> = {};
   leads.forEach(lead => {
-    assigneeCount[lead.assignedTo] = (assigneeCount[lead.assignedTo] || 0) + 1;
+    assigneeCount[lead.assigned_to] = (assigneeCount[lead.assigned_to] || 0) + 1;
   });
   
   const wonLeads = stageCount.won || 0;
   const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0;
 
-  // Get registered users count (mocked for this demo)
   const registeredUsersCount = JSON.parse(localStorage.getItem("registered_users") || "[]").length;
   
   return (

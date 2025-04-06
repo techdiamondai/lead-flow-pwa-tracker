@@ -18,7 +18,7 @@ export const DashboardStats: React.FC = () => {
         // Filter leads based on user role
         let userLeads = allLeads;
         if (!isAdmin() && user) {
-          userLeads = allLeads.filter(lead => lead.assignedTo === user.id);
+          userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
         }
         
         setLeads(userLeads);
@@ -44,12 +44,12 @@ export const DashboardStats: React.FC = () => {
   };
   
   leads.forEach(lead => {
-    stageCounts[lead.currentStage] = (stageCounts[lead.currentStage] || 0) + 1;
+    stageCounts[lead.current_stage] = (stageCounts[lead.current_stage] || 0) + 1;
   });
   
   const totalLeads = leads.length;
   const activeLeads = leads.filter(lead => 
-    !["won", "lost"].includes(lead.currentStage)
+    !["won", "lost"].includes(lead.current_stage)
   ).length;
   
   const wonLeads = stageCounts.won || 0;

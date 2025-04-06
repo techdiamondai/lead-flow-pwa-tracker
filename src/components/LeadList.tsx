@@ -26,12 +26,12 @@ export const LeadList: React.FC = () => {
         // Filter leads based on user role
         let userLeads = allLeads;
         if (!isAdmin() && user) {
-          userLeads = allLeads.filter(lead => lead.assignedTo === user.id);
+          userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
         }
         
         // Sort by most recent update
         userLeads.sort((a, b) => 
-          new Date(b.updated).getTime() - new Date(a.updated).getTime()
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         );
         
         setLeads(userLeads);
@@ -147,11 +147,11 @@ export const LeadList: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center mt-2 sm:mt-0">
-                  <Badge variant={getStageBadgeVariant(lead.currentStage) as any}>
-                    {getStageDisplayName(lead.currentStage)}
+                  <Badge variant={getStageBadgeVariant(lead.current_stage) as any}>
+                    {getStageDisplayName(lead.current_stage)}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    Updated {formatDate(lead.updated)}
+                    Updated {formatDate(lead.updated_at)}
                   </span>
                 </div>
               </div>

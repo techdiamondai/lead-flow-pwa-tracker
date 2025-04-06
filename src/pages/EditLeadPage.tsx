@@ -18,8 +18,7 @@ const EditLeadPage: React.FC = () => {
       if (!id) return;
       
       try {
-        const leadId = parseInt(id, 10);
-        const leadData = await getLead(leadId);
+        const leadData = await getLead(id);
         
         if (leadData) {
           setLead(leadData);

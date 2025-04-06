@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { User } from "@/contexts/AuthContext";
+import { UserProfile } from "@/contexts/AuthContext";
 import { reassignLeadsFromDeletedUser } from "@/services/leadService";
 import {
   Table,
@@ -35,7 +36,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Eye, Trash2, UserCog, ArrowLeft } from "lucide-react";
 
-interface StoredUser extends User {
+interface StoredUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
   password: string;
 }
 
@@ -282,4 +287,4 @@ const UserManagement: React.FC = () => {
   );
 };
 
-export default UserManagement; 
+export default UserManagement;
