@@ -121,12 +121,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_function_exists: {
-        Args: {
-          function_name: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
