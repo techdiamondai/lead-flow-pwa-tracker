@@ -1,10 +1,10 @@
 
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { LoginForm } from "@/components/LoginForm";
+import { ResetPasswordForm } from "@/components/ResetPasswordForm";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Login: React.FC = () => {
+const ResetPassword: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   // If already authenticated, redirect to dashboard
@@ -25,13 +25,13 @@ const Login: React.FC = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             LeadFlow CRM
           </h1>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
+          <p className="text-gray-500 mt-2">Create a new password</p>
         </div>
         
-        <LoginForm />
+        <ResetPasswordForm />
       </div>
     </div>
   );
 };
 
-export default Login;
+export default ResetPassword;
