@@ -42,7 +42,7 @@ export const SupabaseConnectionStatus: React.FC = () => {
       // for the handle_new_user function
       const { data, error } = await supabase.rpc('get_function_exists', { 
         function_name: 'handle_new_user' 
-      } as any);
+      } as unknown as Record<string, unknown>);
       
       if (error) {
         console.error("Error checking trigger:", error);
