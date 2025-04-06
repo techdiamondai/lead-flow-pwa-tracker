@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 export type UserRole = "admin" | "user";
 
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = localStorage.getItem("auth_token");
         if (storedToken) {
           // Verify and decode the token
-          const payload = jwt_decode<JWTPayload>(storedToken);
+          const payload = jwtDecode<JWTPayload>(storedToken);
           
           // Check if token is expired
           const currentTime = Date.now() / 1000;
