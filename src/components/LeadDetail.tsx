@@ -22,6 +22,7 @@ export const LeadDetail = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [assignedToName, setAssignedToName] = useState<string>("");
   const [createdByName, setCreatedByName] = useState<string>("");
+  const [historyUserNames, setHistoryUserNames] = useState<Record<string, string>>({});
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -42,6 +43,24 @@ export const LeadDetail = () => {
           }
           if (leadData.created_by) {
             getUserNameById(leadData.created_by).then(setCreatedByName);
+          }
+
+          // Fetch all history entry user names at once
+          if (leadData.history && leadData.history.length > 0) {
+            const userIds = leadData.history
+              .filter(entry => entry.updated_by)
+              .map(entry => entry.updated_by as string);
+            
+            // Remove duplicates
+            const uniqueUserIds = Array.from(new Set(userIds));
+            
+            // Fetch all names and store them in the state
+            const userNamesMap: Record<string, string> = {};
+            for (const userId of uniqueUserIds) {
+              const userName = await getUserNameById(userId);
+              userNamesMap[userId] = userName;
+            }
+            setHistoryUserNames(userNamesMap);
           }
         } else {
           toast({
@@ -230,14 +249,11 @@ export const LeadDetail = () => {
             {lead.history && lead.history.length > 0 ? (
               <div className="space-y-4">
                 {lead.history.map((entry, index) => {
-                  const [userNameState, setUserNameState] = useState<string>("");
-                  
-                  useEffect(() => {
-                    if (entry.updated_by) {
-                      getUserNameById(entry.updated_by).then(setUserNameState);
-                    }
-                  }, [entry.updated_by]);
-                  
+                  // Get username from the pre-fetched map instead of using useState in the map function
+                  const userName = entry.updated_by 
+                    ? historyUserNames[entry.updated_by] || "Unknown User"
+                    : "Unknown User";
+                    
                   return (
                     <div key={entry.id} className="space-y-2">
                       {index > 0 && <Separator />}
@@ -245,7 +261,7 @@ export const LeadDetail = () => {
                         <div>
                           <Badge variant="outline">{getStageDisplayName(entry.stage)}</Badge>
                           <p className="text-sm text-muted-foreground mt-1">
-                            {formatDate(entry.timestamp)} by {userNameState || "Unknown User"}
+                            {formatDate(entry.timestamp)} by {userName}
                           </p>
                         </div>
                         {entry.notes && (
