@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import MainLayout from "@/layouts/MainLayout";
+import React from "react";
 
 // Pages
 import Index from "./pages/Index";
@@ -19,63 +20,75 @@ import EditLeadPage from "./pages/EditLeadPage";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Index />} />
-              <Route path="login" element={<Login />} />
-              
-              <Route path="dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="leads" element={
-                <ProtectedRoute>
-                  <LeadsPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="leads/new" element={
-                <ProtectedRoute>
-                  <NewLeadPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="leads/:id" element={
-                <ProtectedRoute>
-                  <LeadDetailPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="leads/:id/edit" element={
-                <ProtectedRoute>
-                  <EditLeadPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="admin" element={
-                <ProtectedRoute requireAdmin>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<MainLayout />}>
+                  <Route index element={<Index />} />
+                  <Route path="login" element={<Login />} />
+                  
+                  <Route path="dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads" element={
+                    <ProtectedRoute>
+                      <LeadsPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/new" element={
+                    <ProtectedRoute>
+                      <NewLeadPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/:id" element={
+                    <ProtectedRoute>
+                      <LeadDetailPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/:id/edit" element={
+                    <ProtectedRoute>
+                      <EditLeadPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
