@@ -1,8 +1,4 @@
 
-// We need to update the Header component to correctly access the user profile name
-// Find the code that's causing the error and fix it
-// It needs to use profile.name instead of user.name
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -12,8 +8,8 @@ export const HeaderNameFix = () => {
   return profile?.name || "User";
 };
 
-// Export the Header component to fix import issues
-export const Header = () => {
+// Export the Header component as default to fix import issues
+const Header = () => {
   return (
     <header className="bg-white border-b sticky top-0 z-30">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
@@ -24,3 +20,7 @@ export const Header = () => {
     </header>
   );
 };
+
+// Export both as named exports
+export { Header };
+export default Header;

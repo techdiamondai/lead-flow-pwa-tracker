@@ -1,4 +1,3 @@
-
 // Import necessary modules
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, LeadHistory, LeadStage, NewLead } from "@/models/Lead";
@@ -294,12 +293,12 @@ export async function reassignLeadsFromDeletedUser(deletedUserId: string, newUse
 }
 
 // Helper function to convert string to LeadStage type
-export function stringToLeadStage(stage: string): LeadStage {
-  if (["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"].includes(stage)) {
-    return stage as LeadStage;
-  }
-  return "new";
-}
+export const stringToLeadStage = (stage: string): LeadStage => {
+  const validStages: LeadStage[] = ["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"];
+  return validStages.includes(stage as LeadStage) 
+    ? (stage as LeadStage) 
+    : "new"; // Default to "new" if invalid
+};
 
 // Get display name for lead stage
 export function getStageDisplayName(stage: LeadStage): string {
