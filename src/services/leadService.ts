@@ -1,4 +1,3 @@
-
 import { IndexedDB } from "./db";
 import { Lead, LeadStage, LeadHistory, NewLead, LeadUpdate } from "@/models/Lead";
 import { v4 as uuidv4 } from "uuid";
@@ -123,7 +122,6 @@ export async function updateLead(
   }
 }
 
-// Transfer lead(s) to another user
 export async function transferLeads(
   leadIds: number[], 
   toUserId: string, 
@@ -189,7 +187,6 @@ export async function deleteLead(id: number): Promise<boolean> {
   }
 }
 
-// These functions would interact with your backend API in a real app
 async function syncLead(lead: Lead): Promise<void> {
   // Mock API call
   console.log("Syncing lead to server:", lead);
@@ -212,9 +209,10 @@ function registerSyncLead(): void {
   // Register for background sync if supported
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready.then(registration => {
-      // Fix: Use optional chaining and check if sync property exists
-      if (registration.sync) {
-        registration.sync.register('sync-leads')
+      // Fix: Use type assertion to handle the sync property
+      const reg = registration as unknown as { sync?: { register: (name: string) => Promise<void> } };
+      if (reg.sync) {
+        reg.sync.register('sync-leads')
           .catch(err => console.error('Error registering sync:', err));
       } else {
         console.log('Background Sync not supported');
@@ -223,7 +221,6 @@ function registerSyncLead(): void {
   }
 }
 
-// Helper function to get the stage display name
 export function getStageDisplayName(stage: LeadStage): string {
   const stageMap: Record<LeadStage, string> = {
     new: "New Lead",
@@ -238,7 +235,6 @@ export function getStageDisplayName(stage: LeadStage): string {
   return stageMap[stage] || stage;
 }
 
-// Helper function to get all available stages
 export function getAllStages(): { value: LeadStage; label: string }[] {
   return [
     { value: "new", label: "New Lead" },
