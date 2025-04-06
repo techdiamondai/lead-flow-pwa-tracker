@@ -1,73 +1,55 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { 
+  ChevronDown, 
+  Users, 
+  LineChart, 
+  BarChart3, 
+  ArrowRight, 
+  Check, 
+  LayoutDashboard,
+  ShieldCheck
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle, ArrowRight, BarChart3, Users, Shield, Database, Zap, Laptop, Globe } from "lucide-react";
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) => (
-  <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]">
-    <div className="rounded-full w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 mb-4">
-      <Icon className="h-6 w-6" />
-    </div>
-    <h3 className="text-xl font-bold mb-3 text-gray-900">{title}</h3>
-    <p className="text-gray-600">{description}</p>
-  </div>
-);
-
-const FeatureItem = ({ title }: { title: string }) => (
-  <div className="flex items-center space-x-2">
-    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-    <span>{title}</span>
-  </div>
-);
-
-const Index = () => {
+const Index: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-blue-50 to-indigo-50">
+    <div className="flex flex-col min-h-[calc(100vh-64px)]">
       {/* Hero Section */}
-      <header className="px-4 pt-16 md:pt-24 pb-16 md:pb-20 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center">
-          <div className="md:w-1/2 md:pr-12">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-medium text-sm mb-6">
-              <span className="animate-pulse mr-2">●</span> Next generation CRM platform
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Manage Leads Effectively with LeadFlow CRM
+      <section className="relative py-20 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50/30 to-purple-50/30" />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-blue-400/30 to-indigo-500/30 rounded-full filter blur-3xl opacity-80 -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/30 to-purple-500/30 rounded-full filter blur-3xl opacity-80 translate-y-1/2 -translate-x-1/3" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
+              Effortlessly Manage Your Leads and Drive Growth
             </h1>
-            <p className="mt-6 text-xl text-gray-700 max-w-xl">
-              A powerful lead management system with real-time updates, complete version history, and offline capabilities.
+            <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl">
+              LeadFlow CRM helps you track, nurture, and convert leads with powerful tools designed to streamline your sales process and boost conversion rates.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               {isAuthenticated ? (
-                <Button 
-                  size="lg" 
-                  asChild 
-                  className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 transition-all"
-                >
-                  <Link to="/dashboard" className="flex items-center">
-                    Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                  <Link to="/dashboard">
+                    Go to Dashboard
+                    <LayoutDashboard className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               ) : (
                 <>
-                  <Button 
-                    size="lg" 
-                    asChild 
-                    className="text-lg px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 transition-all"
-                  >
-                    <Link to="/login" className="flex items-center">
-                      Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                    <Link to="/login">
+                      Get Started
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    asChild 
-                    className="text-lg px-8 py-6 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all"
-                  >
+                  <Button asChild size="lg" variant="outline">
                     <Link to="/register">
                       Create Account
                     </Link>
@@ -75,193 +57,189 @@ const Index = () => {
                 </>
               )}
             </div>
-            <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xs font-medium">
-                    {String.fromCharCode(64 + i)}
-                  </div>
-                ))}
-              </div>
-              <p className="text-gray-600">
-                <span className="font-semibold text-gray-800">500+</span> sales teams trust LeadFlow CRM
-              </p>
-            </div>
-          </div>
-          <div className="md:w-1/2 mt-12 md:mt-0">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-3xl blur-3xl transform -rotate-3"></div>
-              <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-3"></div>
-                <img 
-                  src="/placeholder.svg" 
-                  alt="LeadFlow CRM Dashboard" 
-                  className="w-full h-auto"
-                  style={{ aspectRatio: '16/9' }}
-                />
-              </div>
+            <div className="mt-12">
+              <Button variant="ghost" size="sm" className="flex items-center text-gray-500 gap-1">
+                Explore Features
+                <ChevronDown className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
       {/* Features Section */}
-      <section className="px-4 py-16 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 font-medium text-sm inline-block mb-4">
-              Powerful Features
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need to Manage Leads
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              LeadFlow CRM streamlines your sales process from initial contact to closed deals
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Everything You Need to Convert Leads</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Our comprehensive set of tools helps you track leads from first contact to closed deal
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={BarChart3}
-              title="Lead Management"
-              description="Track customer information, contact details, and lead progression through multiple stages."
-            />
-            <FeatureCard 
-              icon={Database}
-              title="Version History"
-              description="Keep a complete history of all lead changes with full audit trail of who made which changes."
-            />
-            <FeatureCard 
-              icon={Users}
-              title="Team Collaboration"
-              description="Assign leads to team members and easily transfer ownership as needed."
-            />
-            <FeatureCard 
-              icon={Shield}
-              title="Offline Access"
-              description="Access and modify leads even without an internet connection. Changes sync when back online."
-            />
-            <FeatureCard 
-              icon={Zap}
-              title="Task Management"
-              description="Create and assign tasks related to leads to keep your team on track."
-            />
-            <FeatureCard 
-              icon={Globe}
-              title="Reporting & Analytics"
-              description="Generate insights with customizable reports on lead status, conversion rates, and team performance."
-            />
-          </div>
-        </div>
-      </section>
-      
-      {/* Testimonial Section */}
-      <section className="px-4 py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-medium text-sm inline-block mb-4">
-              Testimonials
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Trusted by Leading Sales Teams
-            </h2>
-          </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Alex Johnson",
-                role: "Sales Director, TechCorp",
-                content: "LeadFlow CRM has transformed how our sales team operates. The offline functionality is a game-changer for our field reps."
-              },
-              {
-                name: "Sarah Williams",
-                role: "Marketing Manager, GrowthInc",
-                content: "The reporting features helped us identify bottlenecks in our sales pipeline and optimize our lead conversion process."
-              },
-              {
-                name: "Michael Chen",
-                role: "CEO, StartupLaunch",
-                content: "As our company scaled, LeadFlow scaled with us. The team collaboration features ensure no lead falls through the cracks."
-              }
-            ].map((testimonial, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                <div className="flex items-center space-x-1 mb-4 text-yellow-400">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-6">"{testimonial.content}"</p>
-                <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-gray-500 text-sm">{testimonial.role}</p>
-                </div>
+            <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100">
+              <div className="bg-blue-100 text-blue-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+                <Users className="h-6 w-6" />
               </div>
-            ))}
+              <h3 className="text-xl font-semibold mb-2">Lead Management</h3>
+              <p className="text-gray-600">
+                Easily organize, track, and manage your leads through every stage of your sales pipeline
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-100">
+              <div className="bg-indigo-100 text-indigo-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+                <LineChart className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Sales Analytics</h3>
+              <p className="text-gray-600">
+                Gain valuable insights with detailed analytics on your sales performance and lead conversion
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl shadow-sm border border-purple-100">
+              <div className="bg-purple-100 text-purple-700 p-3 rounded-lg w-12 h-12 flex items-center justify-center mb-4">
+                <BarChart3 className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Performance Tracking</h3>
+              <p className="text-gray-600">
+                Monitor team performance, identify bottlenecks, and optimize your sales process
+              </p>
+            </div>
           </div>
         </div>
       </section>
-      
-      {/* CTA Section */}
-      <section className="px-4 py-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="md:w-2/3">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to transform your lead management?</h2>
-              <p className="text-blue-100 text-xl">
-                Join thousands of sales teams that use LeadFlow CRM to close more deals
-              </p>
-              
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl">
-                <FeatureItem title="Lead tracking" />
-                <FeatureItem title="Team management" />
-                <FeatureItem title="Offline access" />
-                <FeatureItem title="Version history" />
-                <FeatureItem title="Task assignments" />
-                <FeatureItem title="Analytics" />
-              </div>
+
+      {/* Security & Login Section */}
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="mb-6 mx-auto bg-blue-100 text-blue-700 p-3 rounded-full w-16 h-16 flex items-center justify-center">
+              <ShieldCheck className="h-8 w-8" />
             </div>
+            <h2 className="text-3xl font-bold mb-4">Secure Authentication System</h2>
+            <p className="text-gray-600 mb-8">
+              Our platform features robust user authentication with JWT security, role-based access control, and account management
+            </p>
             
-            <div className="mt-8 md:mt-0">
-              {isAuthenticated ? (
-                <Button 
-                  size="lg" 
-                  asChild
-                  className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6 shadow-lg"
-                >
-                  <Link to="/dashboard">
-                    Go to Dashboard
-                  </Link>
-                </Button>
-              ) : (
-                <Button 
-                  size="lg" 
-                  asChild
-                  className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6 shadow-lg"
-                >
-                  <Link to="/login">
-                    Get Started Now
-                  </Link>
-                </Button>
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-semibold">User Registration</h3>
+                    <p className="text-gray-600 text-sm">Create new accounts with secure password hashing</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-semibold">Password Recovery</h3>
+                    <p className="text-gray-600 text-sm">Easy password reset functionality</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-semibold">Role-Based Access</h3>
+                    <p className="text-gray-600 text-sm">Admin and user role separation</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <Check className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-semibold">Protected Routes</h3>
+                    <p className="text-gray-600 text-sm">Secure access to authorized content</p>
+                  </div>
+                </div>
+              </div>
+              
+              {!isAuthenticated && (
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                  <Button asChild>
+                    <Link to="/login">Login to Your Account</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/register">Create New Account</Link>
+                  </Button>
+                </div>
               )}
             </div>
           </div>
         </div>
       </section>
-      
+
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Lead Management?</h2>
+          <p className="mb-8 max-w-2xl mx-auto">
+            Join thousands of businesses that use LeadFlow CRM to convert more leads and grow their sales.
+          </p>
+          {isAuthenticated ? (
+            <Button asChild size="lg" variant="secondary">
+              <Link to="/dashboard">Go to Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild size="lg" variant="secondary">
+              <Link to="/register">Get Started For Free</Link>
+            </Button>
+          )}
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="px-4 py-10 bg-gray-50">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">LeadFlow CRM</h3>
-            <p className="text-gray-600">© 2025 LeadFlow. All rights reserved.</p>
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">LeadFlow CRM</h3>
+              <p className="text-gray-400">
+                Powerful lead management solution for growing businesses
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Features</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white">Lead Management</a></li>
+                <li><a href="#" className="hover:text-white">Sales Pipeline</a></li>
+                <li><a href="#" className="hover:text-white">Analytics</a></li>
+                <li><a href="#" className="hover:text-white">Reporting</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white">About Us</a></li>
+                <li><a href="#" className="hover:text-white">Careers</a></li>
+                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="#" className="hover:text-white">Blog</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-4">Support</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-white">Documentation</a></li>
+                <li><a href="#" className="hover:text-white">API</a></li>
+                <li><a href="#" className="hover:text-white">Status</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="flex space-x-6">
-            <Link to="/" className="text-gray-600 hover:text-blue-600">Home</Link>
-            <Link to="/login" className="text-gray-600 hover:text-blue-600">Login</Link>
-            <Link to="/register" className="text-gray-600 hover:text-blue-600">Register</Link>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; {new Date().getFullYear()} LeadFlow CRM. All rights reserved.</p>
           </div>
         </div>
       </footer>
