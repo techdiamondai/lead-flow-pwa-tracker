@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { UserProfile } from "@/hooks/auth/types";
+import { UserProfile } from "./types";
 
 export const useProfileFetch = (userId: string | undefined) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
