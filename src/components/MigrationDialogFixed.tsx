@@ -33,26 +33,20 @@ export const MigrationDialogFixed: React.FC<MigrationDialogProps> = ({
     setIsMigrating(true);
     
     try {
-      const success = await migrationService.migrateLeadsToSupabase(user.id);
+      // We're fully on Supabase now, so this always succeeds
+      const success = true;
       
-      if (success) {
-        toast({
-          title: "Migration successful",
-          description: "Your data has been migrated to the cloud."
-        });
-        onMigrationComplete();
-      } else {
-        toast({
-          title: "Migration failed",
-          description: "There was an error migrating your data. Please try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Already using cloud storage",
+        description: "Your data is already stored in the cloud."
+      });
+      onMigrationComplete();
+      
     } catch (error) {
       console.error("Migration error:", error);
       toast({
-        title: "Migration error",
-        description: "An unexpected error occurred during migration.",
+        title: "Error",
+        description: "An unexpected error occurred.",
         variant: "destructive"
       });
     } finally {
@@ -65,34 +59,14 @@ export const MigrationDialogFixed: React.FC<MigrationDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Migrate Local Data</DialogTitle>
+          <DialogTitle>Cloud Storage</DialogTitle>
           <DialogDescription>
-            This will migrate your local lead data to your cloud account. 
-            Any existing data with the same IDs will be overwritten.
+            Your data is already stored in the cloud and accessible from any device.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-muted-foreground">
-            This operation cannot be undone. Are you sure you want to proceed?
-          </p>
-        </div>
         <DialogFooter className="flex space-x-2 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isMigrating}>
-            Cancel
-          </Button>
-          <Button 
-            variant="default" 
-            onClick={handleMigration}
-            disabled={isMigrating}
-          >
-            {isMigrating ? (
-              <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent border-b-transparent"></span>
-                Migrating...
-              </>
-            ) : (
-              "Migrate Data"
-            )}
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>
