@@ -37,7 +37,7 @@ export const login = async (email: string, password: string): Promise<boolean> =
  */
 export const register = async (name: string, email: string, password: string): Promise<boolean> => {
   try {
-    console.log("Registering user:", name, email);
+    console.log("Registering user in authActions:", name, email);
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -55,14 +55,18 @@ export const register = async (name: string, email: string, password: string): P
 
     console.log("Registration response:", data);
 
-    toast({
-      title: "Registration successful",
-      description: "Please check your email for verification and then log in."
-    });
-
-    return true;
+    // Check if user was created successfully
+    if (data?.user) {
+      toast({
+        title: "Registration successful",
+        description: "Please check your email for verification and then log in."
+      });
+      return true;
+    } else {
+      throw new Error("User registration failed");
+    }
   } catch (error: any) {
-    console.error("Registration error:", error);
+    console.error("Registration error in authActions:", error);
     toast({
       title: "Registration failed",
       description: error.message || "An unknown error occurred",

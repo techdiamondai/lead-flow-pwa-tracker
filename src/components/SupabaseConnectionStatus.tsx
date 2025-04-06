@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/toast";
 
 export const SupabaseConnectionStatus: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
+  const [triggerExists, setTriggerExists] = useState<boolean | null>(null);
 
   const checkConnection = async () => {
     setChecking(true);
@@ -22,12 +23,37 @@ export const SupabaseConnectionStatus: React.FC = () => {
       } else {
         console.log("Supabase connection successful:", data);
         setIsConnected(true);
+        
+        // Check if the trigger exists
+        await checkTrigger();
       }
     } catch (error) {
       console.error("Error checking Supabase connection:", error);
       setIsConnected(false);
     } finally {
       setChecking(false);
+    }
+  };
+
+  const checkTrigger = async () => {
+    try {
+      // This is a simple way to check if the trigger works
+      // We'll try to see if the on_auth_user_created trigger exists by querying
+      // for the handle_new_user function
+      const { data, error } = await supabase.rpc('get_function_exists', { 
+        function_name: 'handle_new_user' 
+      });
+      
+      if (error) {
+        console.error("Error checking trigger:", error);
+        setTriggerExists(false);
+      } else {
+        console.log("Trigger check result:", data);
+        setTriggerExists(!!data);
+      }
+    } catch (error) {
+      console.error("Error checking trigger:", error);
+      setTriggerExists(false);
     }
   };
 
@@ -72,6 +98,16 @@ export const SupabaseConnectionStatus: React.FC = () => {
           <AlertTitle className="text-green-700">Connected to Supabase</AlertTitle>
           <AlertDescription className="text-green-600">
             Your application is properly connected to the database.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {triggerExists === false && isConnected === true && (
+        <Alert variant="warning" className="bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-500" />
+          <AlertTitle className="text-amber-700">User Registration Issue</AlertTitle>
+          <AlertDescription className="text-amber-600">
+            The database trigger for creating user profiles might be missing. Registration may not work correctly.
           </AlertDescription>
         </Alert>
       )}

@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/toast";
 
 // Form validation schema
 const formSchema = z.object({
@@ -30,7 +29,7 @@ export const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register: registerUser } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   
   const form = useForm<FormValues>({
@@ -49,30 +48,17 @@ export const RegisterForm = () => {
     try {
       console.log("Registering with:", data.name, data.email);
       
-      // Direct Supabase registration to debug the issue
-      const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            name: data.name
-          }
-        }
-      });
+      const success = await register(data.name, data.email, data.password);
       
-      console.log("Direct Supabase registration response:", authData, error);
-      
-      if (error) {
-        throw error;
+      if (success) {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email for verification or continue to login."
+        });
+        
+        // Redirect to login page after successful registration
+        navigate('/login');
       }
-      
-      toast({
-        title: "Registration successful",
-        description: "Please check your email for verification or continue to login."
-      });
-      
-      // Redirect to login page after successful registration
-      navigate('/login');
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
