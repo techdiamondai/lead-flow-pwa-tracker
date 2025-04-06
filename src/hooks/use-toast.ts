@@ -126,8 +126,50 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
+// Create a separate context for the toast state
+const ToastContext = React.createContext<{
+  toasts: ToasterToast[]
+  toast: (props: Omit<ToasterToast, "id">) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void }
+  dismiss: (toastId?: string) => void
+}>({
+  toasts: [],
+  toast: () => ({ id: "", dismiss: () => {}, update: () => {} }),
+  dismiss: () => {},
+})
+
+// Initial state
+const initialState: State = { toasts: [] }
+
+// Create a provider component
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = React.useState<State>(initialState)
+
+  // Listeners setup
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [])
+
+  return (
+    <ToastContext.Provider value={{
+      toasts: state.toasts,
+      toast,
+      dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    }}>
+      {children}
+    </ToastContext.Provider>
+  )
+}
+
+// Move listeners outside of any hook
 const listeners: Array<(state: State) => void> = []
 
+// Store the state in memory
 let memoryState: State = { toasts: [] }
 
 function dispatch(action: Action) {
@@ -168,24 +210,13 @@ function toast({ ...props }: Toast) {
   }
 }
 
-function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
-
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
-    }
-  }, [state])
-
-  return {
-    ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+// Export the hook to use the toast context
+export function useToast() {
+  const context = React.useContext(ToastContext)
+  
+  if (context === undefined) {
+    throw new Error("useToast must be used within a ToastProvider")
   }
+  
+  return context
 }
-
-export { useToast, toast }
