@@ -153,35 +153,9 @@ function dispatch(action: Action) {
   })
 }
 
-// Create a provider component
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = React.useState<State>(initialState)
-
-  // Listeners setup
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
-    }
-  }, [])
-
-  return (
-    <ToastContext.Provider value={{
-      toasts: state.toasts,
-      toast,
-      dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-    }}>
-      {children}
-    </ToastContext.Provider>
-  )
-}
-
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+function toast(props: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -208,6 +182,32 @@ function toast({ ...props }: Toast) {
     dismiss,
     update,
   }
+}
+
+// Create a provider component
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = React.useState<State>(initialState)
+
+  // Listeners setup
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [])
+
+  return (
+    <ToastContext.Provider value={{
+      toasts: state.toasts,
+      toast,
+      dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    }}>
+      {children}
+    </ToastContext.Provider>
+  )
 }
 
 // Export the hook to use the toast context
