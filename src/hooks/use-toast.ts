@@ -144,11 +144,17 @@ function dispatch(action: Action) {
 }
 
 // Create a separate context for the toast state
-const ToastContext = React.createContext<{
+type ToastContextType = {
   toasts: ToasterToast[]
-  toast: (props: Omit<ToasterToast, "id">) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void }
+  toast: (props: Omit<ToasterToast, "id">) => { 
+    id: string
+    dismiss: () => void
+    update: (props: ToasterToast) => void
+  }
   dismiss: (toastId?: string) => void
-}>({
+}
+
+const ToastContext = React.createContext<ToastContextType>({
   toasts: [],
   toast: () => ({ id: "", dismiss: () => {}, update: () => {} }),
   dismiss: () => {},
