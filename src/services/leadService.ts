@@ -1,3 +1,4 @@
+
 import { IndexedDB } from "./db";
 import { Lead, LeadStage, LeadHistory, NewLead, LeadUpdate } from "@/models/Lead";
 import { v4 as uuidv4 } from "uuid";
@@ -39,6 +40,7 @@ export async function createLead(leadData: NewLead, userId: string): Promise<num
       ...leadData,
       created: now,
       updated: now,
+      createdBy: userId, // Store who created the lead
       history: [initialHistory]
     };
     
@@ -91,6 +93,7 @@ export async function updateLead(
     }
     
     const updatedLead = {
+      ...currentLead,
       ...updateData,
       updated: now,
       history: newHistory
@@ -116,6 +119,51 @@ export async function updateLead(
     return success;
   } catch (error) {
     console.error(`Error updating lead with ID ${id}:`, error);
+    return false;
+  }
+}
+
+// Transfer lead(s) to another user
+export async function transferLeads(
+  leadIds: number[], 
+  toUserId: string, 
+  fromUserId: string
+): Promise<boolean> {
+  try {
+    let allSuccess = true;
+    
+    for (const id of leadIds) {
+      const lead = await leadDb.getById(id);
+      if (!lead) {
+        allSuccess = false;
+        continue;
+      }
+      
+      const now = new Date().toISOString();
+      const transferHistory: LeadHistory = {
+        id: uuidv4(),
+        timestamp: now,
+        stage: lead.currentStage,
+        updatedBy: fromUserId,
+        notes: `Lead transferred to user ${toUserId}`
+      };
+      
+      const updatedLead = {
+        ...lead,
+        assignedTo: toUserId,
+        updated: now,
+        history: [...lead.history, transferHistory]
+      };
+      
+      const success = await leadDb.update(id, updatedLead);
+      if (!success) {
+        allSuccess = false;
+      }
+    }
+    
+    return allSuccess;
+  } catch (error) {
+    console.error("Error transferring leads:", error);
     return false;
   }
 }
@@ -164,7 +212,8 @@ function registerSyncLead(): void {
   // Register for background sync if supported
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready.then(registration => {
-      registration.sync.register('sync-leads')
+      // Fixed: Use optional chaining to safely access sync property
+      registration.sync?.register('sync-leads')
         .catch(err => console.error('Error registering sync:', err));
     });
   }

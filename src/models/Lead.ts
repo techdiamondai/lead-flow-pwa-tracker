@@ -21,6 +21,7 @@ export interface Lead {
   updated: string;
   currentStage: LeadStage;
   assignedTo: string;
+  createdBy: string; // Added field to track who created the lead
   history: LeadHistory[];
   notes?: string;
 }
@@ -29,4 +30,4 @@ export type NewLead = Omit<Lead, "id" | "created" | "updated" | "history"> & {
   history?: LeadHistory[];
 };
 
-export type LeadUpdate = Partial<Omit<Lead, "id" | "created" | "history">>;
+export type LeadUpdate = Partial<Omit<Lead, "id" | "created" | "history" | "createdBy">>;
