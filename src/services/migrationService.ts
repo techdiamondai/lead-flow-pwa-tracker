@@ -1,58 +1,45 @@
 
-import { Lead } from "@/models/Lead";
-import { IndexedDB } from "@/services/db";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { Lead, LeadStage } from "@/models/Lead";
+import { IndexedDB } from "./db";
+import { stringToLeadStage } from "./leadService";
 
-// Local storage key for tracking migration status
-const MIGRATION_STATUS_KEY = "crm_migration_complete";
-const MIGRATION_VERSION_KEY = "crm_migration_version";
-const CURRENT_MIGRATION_VERSION = 1;
-
-// Check if migration has already been completed
-export function isMigrationCompleted(): boolean {
-  return localStorage.getItem(MIGRATION_STATUS_KEY) === "true" && 
-         Number(localStorage.getItem(MIGRATION_VERSION_KEY)) >= CURRENT_MIGRATION_VERSION;
-}
-
-// Mark migration as completed
-export function setMigrationCompleted(): void {
-  localStorage.setItem(MIGRATION_STATUS_KEY, "true");
-  localStorage.setItem(MIGRATION_VERSION_KEY, CURRENT_MIGRATION_VERSION.toString());
-}
-
-// Migrate leads from IndexedDB to Supabase
+// Function to migrate data from IndexedDB to Supabase
 export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
   try {
-    // Initialize IndexedDB connection
-    const leadDb = new IndexedDB<Lead>("crm_app", { storeName: "leads" });
+    // Initialize IndexedDB leads store
+    const leadsDB = new IndexedDB<Lead>("diamondflow", "leads");
+    await leadsDB.init();
     
     // Get all leads from IndexedDB
-    const localLeads = await leadDb.getAll();
+    const localLeads = await leadsDB.getAll();
     
     if (!localLeads || localLeads.length === 0) {
-      console.log("No local leads to migrate");
+      console.log("No leads found in IndexedDB to migrate");
       return true;
     }
     
-    console.log(`Found ${localLeads.length} local leads to migrate`);
+    console.log(`Migrating ${localLeads.length} leads to Supabase`);
     
-    // Transform leads to match Supabase schema
-    const supabaseLeads = localLeads.map(lead => ({
-      id: lead.id,
-      name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      company: lead.company,
-      position: lead.position || "",
-      address: lead.address || "",
-      current_stage: lead.current_stage,
-      assigned_to: userId,
-      created_by: userId,
-      notes: lead.notes || "",
-      created_at: lead.created_at,
-      updated_at: lead.updated_at
-    }));
+    // Format leads for Supabase
+    const supabaseLeads = localLeads.map(lead => {
+      // Map old lead model to new one
+      return {
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        company: lead.company,
+        position: lead.position || null,
+        address: lead.address || null,
+        current_stage: stringToLeadStage(lead.current_stage),
+        assigned_to: userId, // Assign to current user
+        created_by: userId,
+        notes: lead.notes || null,
+        created_at: lead.created_at,
+        updated_at: lead.updated_at
+      };
+    });
     
     // Insert leads into Supabase
     const { error } = await supabase
@@ -64,51 +51,46 @@ export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
       return false;
     }
     
-    console.log(`Successfully migrated ${supabaseLeads.length} leads to Supabase`);
+    console.log("Successfully migrated leads to Supabase");
     
-    // Migrate lead history entries
-    const historyEntries: any[] = [];
+    // Migrate lead history if available
+    const leadHistoryDB = new IndexedDB<any>("diamondflow", "lead_history");
+    await leadHistoryDB.init();
     
-    for (const lead of localLeads) {
-      if (lead.history && lead.history.length > 0) {
-        const leadHistoryEntries = lead.history.map(entry => ({
-          lead_id: lead.id,
-          stage: entry.stage,
-          timestamp: entry.timestamp,
-          updated_by: userId,
-          notes: entry.notes || ""
-        }));
-        
-        historyEntries.push(...leadHistoryEntries);
-      }
-    }
+    const localLeadHistory = await leadHistoryDB.getAll();
     
-    if (historyEntries.length > 0) {
+    if (localLeadHistory && localLeadHistory.length > 0) {
+      console.log(`Migrating ${localLeadHistory.length} lead history records to Supabase`);
+      
+      const supabaseLeadHistory = localLeadHistory.map((history: any) => ({
+        lead_id: history.leadId,
+        stage: stringToLeadStage(history.stage),
+        updated_by: userId,
+        notes: history.notes || null,
+        timestamp: history.timestamp
+      }));
+      
       const { error: historyError } = await supabase
         .from('lead_history')
-        .insert(historyEntries);
+        .insert(supabaseLeadHistory);
       
       if (historyError) {
         console.error("Error migrating lead history to Supabase:", historyError);
-        return false;
+      } else {
+        console.log("Successfully migrated lead history to Supabase");
       }
-      
-      console.log(`Successfully migrated ${historyEntries.length} history entries to Supabase`);
     }
     
     // Clear local data after successful migration
     try {
-      // Using a method to clear all records instead of clearAll
-      const leads = await leadDb.getAll();
-      for (const lead of leads) {
-        if (lead.id) {
-          await leadDb.delete(lead.id);
-        }
+      // Use the clearAll method with IndexedDB
+      await leadsDB.clear();
+      if (localLeadHistory && localLeadHistory.length > 0) {
+        await leadHistoryDB.clear();
       }
       console.log("Cleared local IndexedDB data after migration");
-    } catch (error) {
-      console.error("Error clearing IndexedDB after migration:", error);
-      // Continue even if clearing fails
+    } catch (clearError) {
+      console.error("Error clearing local data after migration:", clearError);
     }
     
     return true;
@@ -117,3 +99,7 @@ export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
     return false;
   }
 }
+
+export const migrationService = {
+  migrateLeadsToSupabase
+};

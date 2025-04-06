@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 // Form validation schema
 const formSchema = z.object({
@@ -29,6 +30,7 @@ export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register: registerUser } = useAuth();
+  const navigate = useNavigate();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,7 +46,19 @@ export const RegisterForm = () => {
     setIsLoading(true);
     
     try {
-      await registerUser(data.name, data.email, data.password);
+      console.log("Registering with:", data.name, data.email);
+      const success = await registerUser(data.name, data.email, data.password);
+      
+      if (success) {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email for verification."
+        });
+        // Redirect to login page after successful registration
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }
