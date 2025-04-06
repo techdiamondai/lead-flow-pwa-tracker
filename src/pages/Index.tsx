@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SignupForm from "@/components/SignupForm";
+import RecognitionBadges from "@/components/RecognitionBadges";
 
 const Index: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -79,85 +80,80 @@ const Index: React.FC = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="container mx-auto px-4 py-16 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      {/* Hero Section - Updated with split design like Zoho */}
+      <section className="bg-gradient-to-r from-red-50 via-orange-50 to-blue-50 text-gray-800">
+        <div className="container mx-auto px-4 py-8 md:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="mb-2">
-                <span className="bg-blue-500/30 text-white text-xs font-medium px-3 py-1.5 rounded-full">
+              <div className="mb-4">
+                <span className="bg-blue-600/10 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">
                   #1 CRM Software
                 </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
                 The Complete CRM Platform for Growing Businesses
               </h1>
-              <p className="text-lg md:text-xl mb-8 text-blue-100">
+              <p className="text-lg mb-6 text-gray-600">
                 Your complete customer relationship management solution to convert more leads, close more deals, and build better relationships.
               </p>
+              
+              {/* Recognition Badges */}
+              <div className="mb-8">
+                <RecognitionBadges />
+              </div>
+              
               <div className="flex flex-wrap gap-4">
                 {isAuthenticated ? (
-                  <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50 font-medium">
+                  <Button asChild size="lg" className="bg-red-600 hover:bg-red-700 font-medium">
                     <Link to="/dashboard">
                       Go to Dashboard
                       <ChevronRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
                 ) : (
-                  <>
-                    <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-blue-50 font-medium">
-                      <Link to="/register">
-                        Start Your Free Trial
-                        <ChevronRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
-                    <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                      <Link to="/login">
-                        Sign In
-                      </Link>
-                    </Button>
-                  </>
+                  <Button asChild size="lg" className="bg-red-600 hover:bg-red-700 font-medium">
+                    <Link to="/register">
+                      GET STARTED
+                      <ChevronRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
                 )}
               </div>
               <div className="mt-8 flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-blue-300" />
-                <span className="text-blue-100">No credit card required</span>
-                <span className="mx-2 text-blue-400">•</span>
-                <Check className="h-4 w-4 text-blue-300" />
-                <span className="text-blue-100">Free 15-day trial</span>
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-gray-600">No credit card required</span>
+                <span className="mx-2 text-gray-400">•</span>
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-gray-600">Free 15-day trial</span>
               </div>
             </div>
+            
+            {/* Signup Form */}
             <div className="relative">
-              <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
-                  alt="CRM Dashboard preview" 
-                  className="w-full h-auto"
-                />
-              </div>
+              <SignupForm />
             </div>
           </div>
         </div>
         
         {/* Stats Banner */}
-        <div className="bg-indigo-900/80 backdrop-blur-sm py-6">
+        <div className="bg-white py-6 shadow-md">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               <div>
-                <div className="text-3xl font-bold text-white mb-1">250,000+</div>
-                <div className="text-blue-200">Businesses</div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">250,000+</div>
+                <div className="text-gray-600">Businesses</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-white mb-1">180+</div>
-                <div className="text-blue-200">Countries</div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">180+</div>
+                <div className="text-gray-600">Countries</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-white mb-1">15+</div>
-                <div className="text-blue-200">Years of Excellence</div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">15+</div>
+                <div className="text-gray-600">Years of Excellence</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                <div className="text-blue-200">Support</div>
+                <div className="text-3xl font-bold text-gray-800 mb-1">24/7</div>
+                <div className="text-gray-600">Support</div>
               </div>
             </div>
           </div>
@@ -242,7 +238,7 @@ const Index: React.FC = () => {
                   <div className="relative">
                     <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100">
                       <img 
-                        src="https://images.unsplash.com/photo-1552581234-26160f608093?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+                        src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
                         alt="Sales dashboard" 
                         className="w-full h-auto"
                       />
@@ -596,8 +592,8 @@ const Index: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gray-50">
+      {/* CTA Section - Updated to match Zoho style */}
+      <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -605,16 +601,13 @@ const Index: React.FC = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {isAuthenticated ? (
-              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
                 <Link to="/dashboard">Go to Dashboard</Link>
               </Button>
             ) : (
               <>
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <Link to="/register">Start Your Free Trial</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
-                  <Link to="/login">Sign In</Link>
+                <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
+                  <Link to="/register">GET STARTED</Link>
                 </Button>
               </>
             )}
