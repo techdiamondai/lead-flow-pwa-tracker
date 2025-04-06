@@ -212,9 +212,13 @@ function registerSyncLead(): void {
   // Register for background sync if supported
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready.then(registration => {
-      // Fixed: Use optional chaining to safely access sync property
-      registration.sync?.register('sync-leads')
-        .catch(err => console.error('Error registering sync:', err));
+      // Fix: Use optional chaining and check if sync property exists
+      if (registration.sync) {
+        registration.sync.register('sync-leads')
+          .catch(err => console.error('Error registering sync:', err));
+      } else {
+        console.log('Background Sync not supported');
+      }
     });
   }
 }
