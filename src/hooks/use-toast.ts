@@ -140,6 +140,19 @@ const ToastContext = React.createContext<{
 // Initial state
 const initialState: State = { toasts: [] }
 
+// Move listeners outside of any hook
+const listeners: Array<(state: State) => void> = []
+
+// Store the state in memory
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
 // Create a provider component
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = React.useState<State>(initialState)
@@ -164,19 +177,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
     </ToastContext.Provider>
   )
-}
-
-// Move listeners outside of any hook
-const listeners: Array<(state: State) => void> = []
-
-// Store the state in memory
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
 }
 
 type Toast = Omit<ToasterToast, "id">
@@ -220,3 +220,6 @@ export function useToast() {
   
   return context
 }
+
+// Export the toast function directly for easier imports
+export { toast }
