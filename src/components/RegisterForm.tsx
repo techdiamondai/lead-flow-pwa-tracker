@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Form validation schema
 const formSchema = z.object({
@@ -47,18 +48,38 @@ export const RegisterForm = () => {
     
     try {
       console.log("Registering with:", data.name, data.email);
-      const success = await registerUser(data.name, data.email, data.password);
       
-      if (success) {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email for verification."
-        });
-        // Redirect to login page after successful registration
-        navigate('/login');
+      // Direct Supabase registration to debug the issue
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name
+          }
+        }
+      });
+      
+      console.log("Direct Supabase registration response:", authData, error);
+      
+      if (error) {
+        throw error;
       }
-    } catch (error) {
+      
+      toast({
+        title: "Registration successful",
+        description: "Please check your email for verification or continue to login."
+      });
+      
+      // Redirect to login page after successful registration
+      navigate('/login');
+    } catch (error: any) {
       console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "An unknown error occurred",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
