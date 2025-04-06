@@ -1,7 +1,7 @@
 
 // IndexedDB wrapper for offline storage
 
-interface DBOptions {
+export interface DBOptions {
   storeName: string;
   dbVersion?: number;
 }
@@ -31,37 +31,9 @@ export class IndexedDB<T> {
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true });
           // Add indexes if needed
-          store.createIndex('created', 'created', { unique: false });
-          store.createIndex('updated', 'updated', { unique: false });
+          store.createIndex('created_at', 'created_at', { unique: false });
+          store.createIndex('updated_at', 'updated_at', { unique: false });
         }
-      };
-    });
-  }
-
-  async add(item: Partial<T>): Promise<number> {
-    const db = await this.connect();
-    
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(this.storeName, 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      
-      // Add timestamps
-      const itemWithTimestamp = { 
-        ...item, 
-        created: new Date().toISOString(),
-        updated: new Date().toISOString() 
-      };
-      
-      const request = store.add(itemWithTimestamp as any);
-      
-      request.onsuccess = () => {
-        resolve(request.result as number);
-        db.close();
-      };
-      
-      request.onerror = () => {
-        reject(request.error);
-        db.close();
       };
     });
   }
@@ -86,7 +58,7 @@ export class IndexedDB<T> {
     });
   }
 
-  async getById(id: number): Promise<T | undefined> {
+  async getById(id: string): Promise<T | undefined> {
     const db = await this.connect();
     
     return new Promise((resolve, reject) => {
@@ -106,7 +78,35 @@ export class IndexedDB<T> {
     });
   }
 
-  async update(id: number, changes: Partial<T>): Promise<boolean> {
+  async add(item: Partial<T>): Promise<string> {
+    const db = await this.connect();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(this.storeName, 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      // Add timestamps
+      const itemWithTimestamp = { 
+        ...item, 
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString() 
+      };
+      
+      const request = store.add(itemWithTimestamp as any);
+      
+      request.onsuccess = () => {
+        resolve(request.result as string);
+        db.close();
+      };
+      
+      request.onerror = () => {
+        reject(request.error);
+        db.close();
+      };
+    });
+  }
+
+  async update(id: string, changes: Partial<T>): Promise<boolean> {
     const db = await this.connect();
     const item = await this.getById(id);
     
@@ -119,7 +119,7 @@ export class IndexedDB<T> {
       const updatedItem = { 
         ...item, 
         ...changes, 
-        updated: new Date().toISOString() 
+        updated_at: new Date().toISOString() 
       };
       
       const request = store.put(updatedItem);
@@ -136,7 +136,7 @@ export class IndexedDB<T> {
     });
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const db = await this.connect();
     
     return new Promise((resolve, reject) => {

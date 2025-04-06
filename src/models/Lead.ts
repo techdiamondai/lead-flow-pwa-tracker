@@ -15,6 +15,7 @@ export interface Lead {
   notes?: string | null;
   created_at: string;
   updated_at: string;
+  history?: LeadHistory[];
 }
 
 export interface LeadHistory {
@@ -26,4 +27,4 @@ export interface LeadHistory {
   timestamp: string;
 }
 
-export type NewLead = Omit<Lead, "id" | "created_at" | "updated_at">;
+export type NewLead = Omit<Lead, "id" | "created_at" | "updated_at" | "history">;

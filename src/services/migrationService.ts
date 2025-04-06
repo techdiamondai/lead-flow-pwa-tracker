@@ -1,15 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, LeadStage } from "@/models/Lead";
-import { IndexedDB } from "./db";
+import { IndexedDB } from "@/services/db";
 import { stringToLeadStage } from "./leadService";
 
 // Function to migrate data from IndexedDB to Supabase
 export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
   try {
     // Initialize IndexedDB leads store
-    const leadsDB = new IndexedDB<Lead>("diamondflow", "leads");
-    await leadsDB.init();
+    const leadsDB = new IndexedDB<Lead>("diamondflow", { storeName: "leads" });
     
     // Get all leads from IndexedDB
     const localLeads = await leadsDB.getAll();
@@ -54,8 +53,7 @@ export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
     console.log("Successfully migrated leads to Supabase");
     
     // Migrate lead history if available
-    const leadHistoryDB = new IndexedDB<any>("diamondflow", "lead_history");
-    await leadHistoryDB.init();
+    const leadHistoryDB = new IndexedDB<any>("diamondflow", { storeName: "lead_history" });
     
     const localLeadHistory = await leadHistoryDB.getAll();
     
@@ -83,7 +81,7 @@ export async function migrateLeadsToSupabase(userId: string): Promise<boolean> {
     
     // Clear local data after successful migration
     try {
-      // Use the clearAll method with IndexedDB
+      // Use the clear method with IndexedDB
       await leadsDB.clear();
       if (localLeadHistory && localLeadHistory.length > 0) {
         await leadHistoryDB.clear();

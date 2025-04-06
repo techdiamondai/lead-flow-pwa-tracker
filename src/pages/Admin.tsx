@@ -25,6 +25,11 @@ import {
   UserCog
 } from "lucide-react";
 
+export function AdminUserName() {
+  const { profile } = useAuth();
+  return profile?.name || "Admin";
+}
+
 const AdminPage: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,7 +108,7 @@ const AdminPage: React.FC = () => {
             Admin
           </Badge>
           <Badge variant="outline" className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 border-green-200">
-            {user?.name || "Admin User"}
+            {AdminUserName()}
           </Badge>
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 // Import necessary modules
 import { supabase } from "@/integrations/supabase/client";
 import { Lead, LeadHistory, LeadStage, NewLead } from "@/models/Lead";
@@ -55,7 +56,8 @@ export async function getLead(id: string): Promise<Lead | null> {
     // Map the lead data to the Lead type with its history
     const lead: Lead = {
       ...leadData,
-      current_stage: leadData.current_stage as LeadStage
+      current_stage: leadData.current_stage as LeadStage,
+      history: historyData as LeadHistory[] || []
     };
     
     return lead;
@@ -66,7 +68,7 @@ export async function getLead(id: string): Promise<Lead | null> {
 }
 
 // Create a new lead
-export async function createLead(lead: NewLead, userId: string): Promise<Lead | null> {
+export async function createLead(lead: NewLead, userId: string): Promise<string | null> {
   try {
     const { data, error } = await supabase
       .from('leads')
@@ -75,7 +77,7 @@ export async function createLead(lead: NewLead, userId: string): Promise<Lead | 
           ...lead,
           created_by: userId,
           assigned_to: userId,
-          current_stage: 'new',
+          current_stage: lead.current_stage || 'new',
         }
       ])
       .select()
@@ -86,7 +88,10 @@ export async function createLead(lead: NewLead, userId: string): Promise<Lead | 
       return null;
     }
     
-    return data as Lead;
+    // Create initial history entry
+    await logLeadHistory(data.id, data.current_stage, userId, "Lead created");
+    
+    return data.id;
   } catch (error) {
     console.error("Exception creating lead:", error);
     return null;
@@ -94,30 +99,67 @@ export async function createLead(lead: NewLead, userId: string): Promise<Lead | 
 }
 
 // Update an existing lead
-export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
+export async function updateLead(
+  id: string, 
+  updates: Partial<Lead>, 
+  userId: string,
+  historyNote?: string
+): Promise<boolean> {
   try {
-    const { data, error } = await supabase
+    // Get current lead for history tracking
+    const { data: currentLead, error: fetchError } = await supabase
       .from('leads')
-      .update(updates)
+      .select('current_stage')
       .eq('id', id)
-      .select()
       .single();
+    
+    if (fetchError) {
+      console.error("Error fetching current lead:", fetchError);
+      return false;
+    }
+    
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    const { error } = await supabase
+      .from('leads')
+      .update(updateData)
+      .eq('id', id);
     
     if (error) {
       console.error("Error updating lead:", error);
-      return null;
+      return false;
     }
     
-    return data as Lead;
+    // Log to history if stage changed or note provided
+    if ((updates.current_stage && updates.current_stage !== currentLead.current_stage) || historyNote) {
+      await logLeadHistory(
+        id, 
+        updates.current_stage || currentLead.current_stage, 
+        userId, 
+        historyNote || `Stage changed to ${getStageDisplayName(updates.current_stage as LeadStage)}`
+      );
+    }
+    
+    return true;
   } catch (error) {
     console.error("Exception updating lead:", error);
-    return null;
+    return false;
   }
 }
 
 // Delete a lead by ID
 export async function deleteLead(id: string): Promise<boolean> {
   try {
+    // First delete history entries
+    await supabase
+      .from('lead_history')
+      .delete()
+      .eq('lead_id', id);
+    
+    // Then delete the lead
     const { error } = await supabase
       .from('leads')
       .delete()
@@ -138,16 +180,17 @@ export async function deleteLead(id: string): Promise<boolean> {
 // Log lead history
 export async function logLeadHistory(leadId: string, stage: LeadStage, userId: string | null, notes: string | null): Promise<LeadHistory | null> {
   try {
+    const historyEntry = {
+      lead_id: leadId,
+      stage: stage,
+      updated_by: userId,
+      notes: notes,
+      timestamp: new Date().toISOString()
+    };
+    
     const { data, error } = await supabase
       .from('lead_history')
-      .insert([
-        {
-          lead_id: leadId,
-          stage: stage,
-          updated_by: userId,
-          notes: notes,
-        }
-      ])
+      .insert([historyEntry])
       .select()
       .single();
     
@@ -181,6 +224,72 @@ export async function getLeadHistory(leadId: string): Promise<LeadHistory[]> {
   } catch (error) {
     console.error("Exception fetching lead history:", error);
     return [];
+  }
+}
+
+// Transfer leads to another user
+export async function transferLeads(leadIds: string[], newUserId: string, currentUserId: string): Promise<boolean> {
+  try {
+    // Update assigned_to field for all provided lead IDs
+    const { error } = await supabase
+      .from('leads')
+      .update({ 
+        assigned_to: newUserId, 
+        updated_at: new Date().toISOString() 
+      })
+      .in('id', leadIds);
+    
+    if (error) {
+      console.error("Error transferring leads:", error);
+      return false;
+    }
+    
+    // Log history entries for each lead
+    for (const leadId of leadIds) {
+      // Get lead details
+      const { data: lead } = await supabase
+        .from('leads')
+        .select('current_stage')
+        .eq('id', leadId)
+        .single();
+      
+      if (lead) {
+        await logLeadHistory(
+          leadId,
+          lead.current_stage,
+          currentUserId,
+          `Lead transferred to another user`
+        );
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Exception transferring leads:", error);
+    return false;
+  }
+}
+
+// Reassign leads from a deleted user to another user
+export async function reassignLeadsFromDeletedUser(deletedUserId: string, newUserId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('leads')
+      .update({ 
+        assigned_to: newUserId, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('assigned_to', deletedUserId);
+    
+    if (error) {
+      console.error("Error reassigning leads from deleted user:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Exception reassigning leads:", error);
+    return false;
   }
 }
 
@@ -234,4 +343,17 @@ export function getStageColor(stage: LeadStage): string {
     default:
       return "text-gray-500";
   }
+}
+
+// Get all available stages with their display names
+export function getAllStages(): { value: LeadStage; label: string }[] {
+  return [
+    { value: "new", label: "New" },
+    { value: "contacted", label: "Contacted" },
+    { value: "qualified", label: "Qualified" },
+    { value: "proposal", label: "Proposal Sent" },
+    { value: "negotiation", label: "Negotiation" },
+    { value: "won", label: "Won" },
+    { value: "lost", label: "Lost" }
+  ];
 }

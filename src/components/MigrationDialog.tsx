@@ -5,6 +5,8 @@ import { migrationService } from "@/services/migrationService";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { IndexedDB } from "@/services/db";
+import { Lead } from "@/models/Lead";
 
 export const MigrationDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -17,10 +19,18 @@ export const MigrationDialog: React.FC = () => {
     // Check if migration is needed when user is authenticated
     if (user) {
       const checkMigration = async () => {
-        const needs = await migrationService.checkNeedsMigration();
-        setNeedsMigration(needs);
-        if (needs) {
-          setOpen(true);
+        try {
+          // Check if there are any leads in the local storage
+          const db = new IndexedDB<Lead>("diamondflow", { storeName: "leads" });
+          const localLeads = await db.getAll();
+          const needs = localLeads && localLeads.length > 0;
+          
+          setNeedsMigration(needs);
+          if (needs) {
+            setOpen(true);
+          }
+        } catch (error) {
+          console.error("Error checking for migration:", error);
         }
       };
       
@@ -41,12 +51,12 @@ export const MigrationDialog: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const result = await migrationService.migrateLeads(user.id);
+      const success = await migrationService.migrateLeadsToSupabase(user.id);
       
-      if (result.success) {
+      if (success) {
         toast({
           title: "Migration successful",
-          description: `${result.count} leads migrated to your cloud account.`
+          description: "Your leads have been migrated to your cloud account."
         });
         setOpen(false);
         setNeedsMigration(false);
