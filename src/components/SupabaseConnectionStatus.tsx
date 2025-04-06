@@ -103,7 +103,7 @@ export const SupabaseConnectionStatus: React.FC = () => {
       )}
 
       {triggerExists === false && isConnected === true && (
-        <Alert variant="destructive" className="bg-amber-50 border-amber-200">
+        <Alert variant="warning" className="bg-amber-50 border-amber-200">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <AlertTitle className="text-amber-700">User Registration Issue</AlertTitle>
           <AlertDescription className="text-amber-600">
