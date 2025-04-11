@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     forgotPassword,
     resetPassword,
-    // Make sure this properly returns a Promise<boolean>
+    // More reliable admin check that caches the result
     isAdmin: async () => {
       if (!user || !profile) return false;
       try {

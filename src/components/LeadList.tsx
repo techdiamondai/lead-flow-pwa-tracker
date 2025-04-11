@@ -26,6 +26,7 @@ export const LeadList: React.FC = () => {
         if (user) {
           const { isAdmin } = useAuth();
           const adminStatus = await isAdmin();
+          console.log("Admin check in LeadList:", adminStatus);
           setIsAdmin(adminStatus);
         }
       } catch (error) {
@@ -44,7 +45,10 @@ export const LeadList: React.FC = () => {
         // If admin, show all leads. Otherwise, filter by user ID
         let userLeads = allLeads;
         if (!isAdmin && user) {
+          console.log("Filtering leads for non-admin user");
           userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
+        } else {
+          console.log("Showing all leads for admin user");
         }
         
         // Sort by most recent update

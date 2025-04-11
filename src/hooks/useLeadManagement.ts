@@ -14,6 +14,7 @@ export const useLeadManagement = () => {
     try {
       setIsLoading(true);
       // Always get all leads in the admin management component
+      console.log("Fetching all leads for admin management");
       const allLeads = await getLeads();
       
       // Sort by most recent update
