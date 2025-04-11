@@ -42,37 +42,25 @@ export const hasRole = (profile: UserProfile | null, role: UserRole): boolean =>
 
 /**
  * Creates a new admin user in the database
- * This now inserts directly into the admin_users table
+ * This now uses an RPC function to avoid RLS policy issues
  */
 export const createAdminUser = async (name: string, email: string, userId: string): Promise<boolean> => {
   try {
-    // First check if the user is already an admin to prevent duplicate entries
-    const { data: existingAdmin } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('id', userId)
-      .single();
-      
-    if (existingAdmin) {
-      console.log("User is already an admin");
-      return true; // User is already an admin, so return success
-    }
-    
     console.log("Creating admin user with ID:", userId);
     
-    // Insert the user into the admin_users table
-    const { error } = await supabase
-      .from('admin_users')
-      .insert([
-        { id: userId, name, email }
-      ]);
+    // Use the RPC function to create admin user - this bypasses RLS
+    const { data, error } = await supabase.rpc('create_admin_user', {
+      admin_id: userId,
+      admin_name: name,
+      admin_email: email
+    });
 
     if (error) {
       console.error("Error creating admin user:", error);
       return false;
     }
     
-    console.log("Admin user created successfully");
+    console.log("Admin user created successfully:", data);
     return true;
   } catch (error) {
     console.error("Error creating admin user:", error);
