@@ -3,21 +3,39 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lead, LeadStage } from "@/models/Lead";
 import { getLeads, getStageDisplayName } from "@/services/leadService";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export const DashboardStats: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Check if the user is an admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        if (user) {
+          const { isAdmin } = useAuth();
+          const adminStatus = await isAdmin();
+          setIsAdmin(adminStatus);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
   
   useEffect(() => {
     const fetchLeads = async () => {
       try {
         const allLeads = await getLeads();
         
-        // Filter leads based on user role
+        // If admin, show all leads. Otherwise, filter by user ID
         let userLeads = allLeads;
-        if (!isAdmin() && user) {
+        if (!isAdmin && user) {
           userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
         }
         

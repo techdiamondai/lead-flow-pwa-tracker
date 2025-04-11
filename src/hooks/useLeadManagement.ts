@@ -13,7 +13,9 @@ export const useLeadManagement = () => {
   const fetchLeads = async () => {
     try {
       setIsLoading(true);
+      // Always get all leads in the admin management component
       const allLeads = await getLeads();
+      
       // Sort by most recent update
       allLeads.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
       setLeads(allLeads);

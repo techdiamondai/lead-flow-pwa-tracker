@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Lead } from "@/models/Lead";
 import { getLeads, getStageDisplayName } from "@/services/leadService";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Search, Plus, Eye } from "lucide-react";
 
 export const LeadList: React.FC = () => {
@@ -15,17 +15,35 @@ export const LeadList: React.FC = () => {
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if the user is an admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        if (user) {
+          const { isAdmin } = useAuth();
+          const adminStatus = await isAdmin();
+          setIsAdmin(adminStatus);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   useEffect(() => {
     const fetchLeads = async () => {
       try {
         const allLeads = await getLeads();
         
-        // Filter leads based on user role
+        // If admin, show all leads. Otherwise, filter by user ID
         let userLeads = allLeads;
-        if (!isAdmin() && user) {
+        if (!isAdmin && user) {
           userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
         }
         
@@ -97,7 +115,7 @@ export const LeadList: React.FC = () => {
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
-          {isAdmin() ? "All Leads" : "My Leads"}
+          {isAdmin ? "All Leads" : "My Leads"}
         </CardTitle>
         <Button 
           onClick={() => navigate("/leads/new")}
@@ -147,7 +165,7 @@ export const LeadList: React.FC = () => {
                   <div className="text-sm text-muted-foreground">
                     {lead.company}
                   </div>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <div className="text-xs text-muted-foreground mt-1">
                       Assigned to: {lead.assigned_to || "Unassigned"}
                     </div>
@@ -160,15 +178,13 @@ export const LeadList: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Updated {formatDate(lead.updated_at)}
                   </span>
-                  {isAdmin() && (
-                    <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/leads/${lead.id}`);
-                    }}>
-                      <Eye className="h-3.5 w-3.5" />
-                      <span className="sr-only">View details</span>
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/leads/${lead.id}`);
+                  }}>
+                    <Eye className="h-3.5 w-3.5" />
+                    <span className="sr-only">View details</span>
+                  </Button>
                 </div>
               </div>
             ))}

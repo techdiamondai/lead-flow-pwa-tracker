@@ -23,12 +23,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     forgotPassword,
     resetPassword,
-    // Fix: Ensure this properly returns a Promise<boolean> and properly checks admin status
+    // Make sure this properly returns a Promise<boolean>
     isAdmin: async () => {
       if (!user || !profile) return false;
-      const adminStatus = await checkIsAdmin(profile);
-      console.log("Admin status check result in AuthProvider:", adminStatus, "for user:", profile.id);
-      return adminStatus;
+      try {
+        const adminStatus = await checkIsAdmin(profile);
+        console.log("Admin status check result in AuthProvider:", adminStatus, "for user:", profile.id);
+        return adminStatus;
+      } catch (error) {
+        console.error("Error checking admin status in AuthProvider:", error);
+        return false;
+      }
     },
   };
 
