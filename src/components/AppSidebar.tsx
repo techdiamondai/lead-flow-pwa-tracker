@@ -30,6 +30,15 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 
+// Define the navigation item type to include adminRequired property
+interface NavItem {
+  title: string;
+  path: string;
+  icon: React.ComponentType<any>;
+  authRequired: boolean;
+  adminRequired?: boolean; // Make this optional since not all items need it
+}
+
 export const AppSidebar = () => {
   const { isAuthenticated, logout, isAdmin } = useAuth();
   const location = useLocation();
@@ -48,7 +57,7 @@ export const AppSidebar = () => {
 
   // Define navigation items based on auth status and admin privileges
   const getNavItems = () => {
-    const items = [
+    const items: NavItem[] = [
       {
         title: "Dashboard",
         path: "/dashboard",
@@ -69,12 +78,14 @@ export const AppSidebar = () => {
           title: "Admin Panel",
           path: "/admin",
           icon: Shield,
+          authRequired: true,
           adminRequired: true,
         },
         {
           title: "User Management",
           path: "/admin/users",
           icon: Users,
+          authRequired: true,
           adminRequired: true,
         }
       );
