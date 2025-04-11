@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/toast";
@@ -13,15 +13,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAdmin = false
 }) => {
-  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { user, isAuthenticated, isLoading, profile } = useAuth();
+  const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
+  const [isAdminChecking, setIsAdminChecking] = useState<boolean>(requireAdmin);
   const location = useLocation();
+  
+  useEffect(() => {
+    // Only check admin status if required
+    if (requireAdmin && profile && isAuthenticated) {
+      setIsAdminChecking(true);
+      
+      // Import the isAdmin function dynamically to prevent circular dependencies
+      import("@/hooks/auth/utils/roleUtils").then(({ isAdmin }) => {
+        isAdmin(profile).then((result) => {
+          setIsAdminUser(result);
+          setIsAdminChecking(false);
+        });
+      });
+    }
+  }, [requireAdmin, isAuthenticated, profile]);
   
   useEffect(() => {
     // Debug information to help diagnose issues
     console.log("ProtectedRoute - Auth State:", { 
       isAuthenticated, 
       isLoading, 
-      isAdmin: isAdmin(),
+      isAdminUser,
+      isAdminChecking,
       requireAdmin,
       user: user?.id,
       path: location.pathname
@@ -35,10 +53,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         variant: "destructive"
       });
     }
-  }, [isAuthenticated, isLoading, isAdmin, requireAdmin, user, location.pathname]);
+  }, [isAuthenticated, isLoading, isAdminUser, requireAdmin, user, location.pathname, isAdminChecking]);
   
-  if (isLoading) {
-    // Show loading state while checking authentication
+  // Show loading state while checking authentication or admin status
+  if (isLoading || isAdminChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse space-y-2">
@@ -55,7 +73,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={requireAdmin ? "/admin-login" : "/login"} state={{ from: location }} replace />;
   }
   
-  if (requireAdmin && !isAdmin()) {
+  if (requireAdmin && !isAdminUser) {
     console.log("Admin access denied, redirecting to dashboard");
     // Redirect to dashboard if admin access is required but user is not admin
     toast({

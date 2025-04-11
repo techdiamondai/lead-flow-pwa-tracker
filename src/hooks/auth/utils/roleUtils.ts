@@ -1,11 +1,30 @@
 
+import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, UserRole } from "../types";
 
 /**
  * Determines if the current user profile has admin role
+ * Now checks against the admin_users table for stronger separation
  */
-export const isAdmin = (profile: UserProfile | null): boolean => {
-  return profile?.role === "admin";
+export const isAdmin = async (profile: UserProfile | null): Promise<boolean> => {
+  if (!profile?.id) return false;
+
+  try {
+    // Check if user exists in admin_users table using our database function
+    const { data, error } = await supabase.rpc('is_admin_user', {
+      user_id: profile.id
+    });
+
+    if (error) {
+      console.error("Error checking admin status:", error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error("Exception checking admin status:", error);
+    return false;
+  }
 };
 
 /**
@@ -17,14 +36,22 @@ export const hasRole = (profile: UserProfile | null, role: UserRole): boolean =>
 
 /**
  * Creates a new admin user in the database
- * Note: This should only be called from a secured environment,
- * not from the client-side application
+ * This now inserts directly into the admin_users table
  */
 export const createAdminUser = async (name: string, email: string, userId: string): Promise<boolean> => {
   try {
-    // This is a placeholder function that would typically be implemented
-    // in a secure backend environment or through direct database operations
-    console.log(`Admin user creation would occur here for ${name} (${email}) with ID ${userId}`);
+    // Insert the user into the admin_users table
+    const { error } = await supabase
+      .from('admin_users')
+      .insert([
+        { id: userId, name, email }
+      ]);
+
+    if (error) {
+      console.error("Error creating admin user:", error);
+      return false;
+    }
+    
     return true;
   } catch (error) {
     console.error("Error creating admin user:", error);

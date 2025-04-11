@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Lead } from "@/models/Lead";
 import { getLeads } from "@/services/leadService";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +36,7 @@ const AdminPage: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const { user, isAdmin } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
@@ -88,18 +87,31 @@ const AdminPage: React.FC = () => {
 
   // Setup real-time subscriptions
   useEffect(() => {
-    if (!isAdmin()) {
-      toast({
-        title: "Access Denied",
-        description: "You do not have permission to view the admin dashboard.",
-        variant: "destructive"
-      });
-      navigate("/dashboard");
-      return;
-    }
-
-    // Initial data fetch
-    fetchAllLeads();
+    // Use our new isAdmin check
+    const checkAdminStatus = async () => {
+      try {
+        const { isAdmin } = await import("@/hooks/auth/utils/roleUtils");
+        const isAdminUser = await isAdmin(profile);
+        
+        if (!isAdminUser) {
+          toast({
+            title: "Access Denied",
+            description: "You do not have permission to view the admin dashboard.",
+            variant: "destructive"
+          });
+          navigate("/dashboard");
+          return;
+        }
+        
+        // If admin, proceed with data fetching
+        fetchAllLeads();
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        navigate("/dashboard");
+      }
+    };
+    
+    checkAdminStatus();
     
     // Set up real-time subscription for leads table
     const leadsChannel = supabase
@@ -130,7 +142,7 @@ const AdminPage: React.FC = () => {
       supabase.removeChannel(leadsChannel);
       supabase.removeChannel(historyChannel);
     };
-  }, [isAdmin, navigate, toast]);
+  }, [navigate, toast, profile]);
   
   const totalLeads = leads.length;
   

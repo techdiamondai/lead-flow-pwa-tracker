@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       lead_history: {
         Row: {
           id: string
@@ -123,6 +144,10 @@ export type Database = {
     Functions: {
       get_function_exists: {
         Args: { function_name: string }
+        Returns: boolean
+      }
+      is_admin_user: {
+        Args: { user_id: string }
         Returns: boolean
       }
     }

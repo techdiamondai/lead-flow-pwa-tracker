@@ -18,13 +18,14 @@ export const login = async (email: string, password: string, isAdminLogin = fals
 
     // For admin logins, verify that the user actually has admin role
     if (isAdminLogin) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
+      // Check if user exists in the admin_users table
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('id')
         .eq('id', data.user?.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profile || profile.role !== 'admin') {
+      if (adminError || !adminUser) {
         toast({
           title: "Access Denied",
           description: "You do not have administrator privileges",

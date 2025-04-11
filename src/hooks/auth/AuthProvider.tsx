@@ -4,7 +4,6 @@ import { AuthContext } from "./AuthContext";
 import { useProfileFetch } from "./useProfileFetch";
 import { useAuthState } from "./utils/authState";
 import { login, register, logout, forgotPassword, resetPassword } from "./utils/authActions";
-import { isAdmin } from "./utils/roleUtils";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Use the custom hooks to manage auth state and fetch profile
@@ -22,7 +21,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     forgotPassword,
     resetPassword,
-    isAdmin: () => isAdmin(profile),
+    isAdmin: () => {
+      // This is now just a placeholder function
+      // The actual admin check is done in the ProtectedRoute component
+      // using the async isAdmin function from roleUtils
+      return true; // This will be overridden by the proper check
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
