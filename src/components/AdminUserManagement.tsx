@@ -8,6 +8,7 @@ import { UserSearchBar } from "@/components/admin/users/UserSearchBar";
 import { UserTable } from "@/components/admin/users/UserTable";
 import { UserLoadingState } from "@/components/admin/users/UserLoadingState";
 import { UserEmptyState } from "@/components/admin/users/UserEmptyState";
+import { useEffect } from "react";
 
 export const AdminUserManagement: React.FC = () => {
   const {
@@ -22,6 +23,14 @@ export const AdminUserManagement: React.FC = () => {
     promoteSelectedToAdmin,
     refetchUsers
   } = useUserManagement();
+  
+  useEffect(() => {
+    console.log("AdminUserManagement rendered", {
+      usersLoaded: filteredUsers.length,
+      isLoading,
+      error
+    });
+  }, [filteredUsers, isLoading, error]);
   
   return (
     <Card>
@@ -45,7 +54,11 @@ export const AdminUserManagement: React.FC = () => {
         {isLoading ? (
           <UserLoadingState />
         ) : filteredUsers.length === 0 ? (
-          <UserEmptyState error={error} refetchUsers={refetchUsers} />
+          <UserEmptyState 
+            error={error} 
+            refetchUsers={refetchUsers}
+            isLoading={isLoading}
+          />
         ) : (
           <UserTable 
             users={filteredUsers}

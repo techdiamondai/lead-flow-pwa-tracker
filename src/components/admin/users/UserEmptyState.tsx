@@ -2,6 +2,7 @@
 import React from "react";
 import { UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface UserEmptyStateProps {
   isLoading?: boolean;
@@ -14,6 +15,16 @@ export const UserEmptyState: React.FC<UserEmptyStateProps> = ({
   error = null,
   refetchUsers
 }) => {
+  if (isLoading) {
+    return (
+      <div className="text-center py-10 border rounded-md bg-muted/5">
+        <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-3" />
+        <h3 className="text-lg font-medium">Loading users...</h3>
+        <p className="text-muted-foreground mt-1">Please wait while we fetch user data.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="text-center py-10 border rounded-md bg-muted/10">
       <UserX className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-3" />
@@ -25,13 +36,13 @@ export const UserEmptyState: React.FC<UserEmptyStateProps> = ({
           ? `There was a problem loading users: ${error}`
           : "No users match your current filters or there are no users registered in the system yet."}
       </p>
-      {error && refetchUsers && (
+      {refetchUsers && (
         <Button 
           variant="outline" 
           className="mt-4"
           onClick={refetchUsers}
         >
-          Try again
+          {error ? "Try again" : "Refresh Users"}
         </Button>
       )}
     </div>

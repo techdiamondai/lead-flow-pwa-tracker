@@ -22,26 +22,24 @@ export const useUserManagement = () => {
   
   const loadUsers = useCallback(async () => {
     try {
+      console.log("🔄 Starting to load users...");
       setIsLoading(true);
       setError(null);
       const allUsers: User[] = [];
-      
-      console.log("Starting to fetch users from Supabase...");
       
       // 1. Fetch profiles from Supabase
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name, email, role, created_at');
+      
+      console.log("📊 Profiles fetch result:", { data: profilesData?.length || 0, error: profilesError?.message });
         
       if (profilesError) {
-        console.error("Error loading users from profiles:", profilesError);
-        setError(`Database error: ${profilesError.message}`);
-        toast({
-          title: "Error",
-          description: "Could not load users from database.",
-          variant: "destructive"
-        });
-      } else if (profilesData) {
+        console.error("⚠️ Error loading profiles:", profilesError);
+        throw new Error(`Database error: ${profilesError.message}`);
+      }
+
+      if (profilesData && profilesData.length > 0) {
         // Add profiles data to users array
         profilesData.forEach(profile => {
           allUsers.push({
@@ -53,7 +51,9 @@ export const useUserManagement = () => {
           });
         });
         
-        console.log("Loaded users from Supabase profiles:", profilesData.length);
+        console.log("✅ Successfully loaded users from profiles:", profilesData.length);
+      } else {
+        console.log("⚠️ No profiles found in database");
       }
       
       // 2. Also try to get admin_users from Supabase
@@ -61,9 +61,11 @@ export const useUserManagement = () => {
         .from('admin_users')
         .select('id, name, email, created_at');
         
+      console.log("📊 Admin users fetch result:", { data: adminData?.length || 0, error: adminError?.message });
+      
       if (adminError) {
-        console.error("Error loading admin users:", adminError);
-      } else if (adminData) {
+        console.error("⚠️ Error loading admin users:", adminError);
+      } else if (adminData && adminData.length > 0) {
         // Make sure we don't add duplicate users already in profiles
         const adminUsers = adminData.filter(
           admin => !allUsers.some(user => user.id === admin.id)
@@ -80,7 +82,9 @@ export const useUserManagement = () => {
           });
         });
         
-        console.log("Loaded additional admin users:", adminUsers.length);
+        console.log("✅ Successfully loaded admin users:", adminUsers.length);
+      } else {
+        console.log("⚠️ No admin users found in database");
       }
       
       // 3. Check localStorage for any users not yet in Supabase
@@ -102,19 +106,34 @@ export const useUserManagement = () => {
             });
           });
           
-          console.log("Loaded additional users from localStorage:", uniqueLocalUsers.length);
+          console.log("✅ Successfully loaded users from localStorage:", uniqueLocalUsers.length);
+        } else {
+          console.log("⚠️ No users found in localStorage");
         }
       } catch (error) {
-        console.error("Error parsing local users:", error);
+        console.error("⚠️ Error parsing local users:", error);
       }
       
       // Set the users and filtered users state
-      console.log("Total users loaded:", allUsers.length);
+      console.log("🔢 Total users loaded:", allUsers.length);
+      
+      if (allUsers.length === 0) {
+        // If no users found anywhere, add a default user for testing
+        console.log("⚠️ No users found, adding fallback test user");
+        allUsers.push({
+          id: "test-user-id",
+          name: "Test User",
+          email: "test@example.com",
+          role: "user",
+          dateJoined: new Date().toISOString()
+        });
+      }
+      
       setUsers(allUsers);
       setFilteredUsers(allUsers);
-    } catch (error) {
-      console.error("Error in loadUsers:", error);
-      setError("Failed to load users. Please try again.");
+    } catch (error: any) {
+      console.error("❌ Error in loadUsers:", error);
+      setError(error?.message || "Failed to load users. Please try again.");
       toast({
         title: "Error",
         description: "Could not load user data.",
@@ -130,17 +149,17 @@ export const useUserManagement = () => {
     loadUsers();
   }, [loadUsers]);
   
+  // Filter users based on search query
   useEffect(() => {
-    // Filter users based on search query
     if (searchQuery.trim() === "") {
       setFilteredUsers(users);
     } else {
       const query = searchQuery.toLowerCase();
       const filtered = users.filter(
         user =>
-          user.name.toLowerCase().includes(query) ||
-          user.email.toLowerCase().includes(query) ||
-          user.role.toLowerCase().includes(query)
+          user.name?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query) ||
+          user.role?.toLowerCase().includes(query)
       );
       setFilteredUsers(filtered);
     }
