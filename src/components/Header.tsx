@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Shield } from "lucide-react";
 
 // Create the HeaderNameFix component to access the correct user profile name
 export const HeaderNameFix = () => {
@@ -77,6 +77,11 @@ const Header = () => {
               </Button>
               <Button asChild>
                 <Link to="/register">Sign Up</Link>
+              </Button>
+              <Button variant="outline" size="icon" className="ml-1" asChild>
+                <Link to="/admin-login" title="Admin Login">
+                  <Shield className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
           )}

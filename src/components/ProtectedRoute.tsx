@@ -51,13 +51,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   if (!isAuthenticated) {
     console.log("Redirecting to login from:", location.pathname);
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to appropriate login page based on whether admin access is required
+    return <Navigate to={requireAdmin ? "/admin-login" : "/login"} state={{ from: location }} replace />;
   }
   
   if (requireAdmin && !isAdmin()) {
     console.log("Admin access denied, redirecting to dashboard");
     // Redirect to dashboard if admin access is required but user is not admin
+    toast({
+      title: "Access Denied",
+      description: "You need administrator privileges to access this page",
+      variant: "destructive"
+    });
     return <Navigate to="/dashboard" replace />;
   }
   

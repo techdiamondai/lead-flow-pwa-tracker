@@ -5,9 +5,9 @@ import { toast } from "@/hooks/toast";
 /**
  * Logs in a user with email and password
  */
-export const login = async (email: string, password: string): Promise<boolean> => {
+export const login = async (email: string, password: string, isAdminLogin = false): Promise<boolean> => {
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password
     });
@@ -16,9 +16,32 @@ export const login = async (email: string, password: string): Promise<boolean> =
       throw error;
     }
 
+    // For admin logins, verify that the user actually has admin role
+    if (isAdminLogin) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user?.id)
+        .single();
+
+      if (profileError || !profile || profile.role !== 'admin') {
+        toast({
+          title: "Access Denied",
+          description: "You do not have administrator privileges",
+          variant: "destructive"
+        });
+        
+        // Log them out since they don't have admin privileges
+        await supabase.auth.signOut();
+        return false;
+      }
+    }
+
     toast({
       title: "Logged in successfully",
-      description: "Welcome back!"
+      description: isAdminLogin 
+        ? "Welcome to the admin portal"
+        : "Welcome back!"
     });
     
     return true;

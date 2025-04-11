@@ -13,6 +13,7 @@ import React from "react";
 // Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -51,6 +52,7 @@ const App = () => {
                     {/* Public routes */}
                     <Route index element={<Index />} />
                     <Route path="login" element={<Login />} />
+                    <Route path="admin-login" element={<AdminLogin />} />
                     <Route path="register" element={<Register />} />
                     <Route path="forgot-password" element={<ForgotPassword />} />
                     <Route path="reset-password" element={<ResetPassword />} />
