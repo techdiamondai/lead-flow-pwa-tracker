@@ -20,9 +20,19 @@ export const LeadHistoryEntry: React.FC<LeadHistoryEntryProps> = ({
   const [userName, setUserName] = React.useState<string>("");
 
   React.useEffect(() => {
-    if (entry.updated_by) {
-      getUserNameById(entry.updated_by).then(setUserName);
-    }
+    const fetchUserName = async () => {
+      if (entry.updated_by) {
+        try {
+          const name = await getUserNameById(entry.updated_by);
+          setUserName(name);
+        } catch (error) {
+          console.error("Error fetching user name:", error);
+          setUserName("Unknown User");
+        }
+      }
+    };
+    
+    fetchUserName();
   }, [entry.updated_by]);
 
   return (

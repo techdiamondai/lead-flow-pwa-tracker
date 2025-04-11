@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfile } from "@/contexts/AuthContext";
-import { reassignLeadsFromDeletedUser } from "@/services/leadService";
+import { getLeads, reassignLeadsFromDeletedUser } from "@/services/leadService";
+import { Lead } from "@/models/Lead";
 import {
   Table,
   TableBody,
@@ -34,7 +35,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Trash2, UserCog, ArrowLeft } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, Trash2, UserCog, ArrowLeft, UserCheck, Mail, Phone, Building, Calendar } from "lucide-react";
 
 interface StoredUser {
   id: string;
@@ -42,6 +44,20 @@ interface StoredUser {
   email: string;
   role: string;
   password: string;
+  phone?: string;
+  address?: string;
+  dateJoined?: string;
+}
+
+interface UserStats {
+  totalLeads: number;
+  activeLeads: number;
+  wonLeads: number;
+  conversionRate: number;
+}
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
 }
 
 const UserManagement: React.FC = () => {
@@ -50,9 +66,18 @@ const UserManagement: React.FC = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userLeads, setUserLeads] = useState<Lead[]>([]);
+  const [userStats, setUserStats] = useState<UserStats>({ 
+    totalLeads: 0, 
+    activeLeads: 0,
+    wonLeads: 0,
+    conversionRate: 0
+  });
   const { isAdmin, user: currentUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const query = useQuery();
+  const highlightUserId = query.get("highlight");
 
   // Load users from localStorage
   useEffect(() => {
@@ -69,13 +94,69 @@ const UserManagement: React.FC = () => {
     const loadUsers = () => {
       const storedUsers = localStorage.getItem("registered_users");
       if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
+        const parsedUsers = JSON.parse(storedUsers);
+        
+        // Add dateJoined if not present
+        const usersWithJoinDate = parsedUsers.map((user: StoredUser) => ({
+          ...user,
+          dateJoined: user.dateJoined || new Date().toISOString()
+        }));
+        
+        setUsers(usersWithJoinDate);
+        
+        // If there's a highlighted user from query params, select them
+        if (highlightUserId) {
+          const highlightedUser = usersWithJoinDate.find(
+            (user: StoredUser) => user.id === highlightUserId
+          );
+          if (highlightedUser) {
+            setSelectedUser(highlightedUser);
+            fetchUserLeadsAndStats(highlightedUser.id);
+            setIsViewDialogOpen(true);
+          }
+        }
       }
       setIsLoading(false);
     };
 
     loadUsers();
-  }, [isAdmin, navigate, toast]);
+  }, [isAdmin, navigate, toast, highlightUserId]);
+
+  // Function to fetch leads for a specific user
+  const fetchUserLeadsAndStats = async (userId: string) => {
+    try {
+      const allLeads = await getLeads();
+      const userFilteredLeads = allLeads.filter(lead => lead.assigned_to === userId);
+      
+      setUserLeads(userFilteredLeads);
+      
+      // Calculate stats
+      const totalLeads = userFilteredLeads.length;
+      const activeLeads = userFilteredLeads.filter(lead => 
+        !["won", "lost"].includes(lead.current_stage)
+      ).length;
+      const wonLeads = userFilteredLeads.filter(lead => lead.current_stage === "won").length;
+      const closedLeads = userFilteredLeads.filter(lead => 
+        ["won", "lost"].includes(lead.current_stage)
+      ).length;
+      const conversionRate = closedLeads > 0 ? Math.round((wonLeads / closedLeads) * 100) : 0;
+      
+      setUserStats({
+        totalLeads,
+        activeLeads,
+        wonLeads,
+        conversionRate
+      });
+      
+    } catch (error) {
+      console.error("Error fetching user leads:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch user leads data.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Function to delete a user
   const handleDeleteUser = async (userId: string) => {
@@ -123,6 +204,7 @@ const UserManagement: React.FC = () => {
   // Function to view user details
   const handleViewUser = (user: StoredUser) => {
     setSelectedUser(user);
+    fetchUserLeadsAndStats(user.id);
     setIsViewDialogOpen(true);
   };
 
@@ -130,6 +212,42 @@ const UserManagement: React.FC = () => {
   const handleDeleteConfirm = (user: StoredUser) => {
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
+  };
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric", 
+        month: "short", 
+        day: "numeric"
+      }).format(date);
+    } catch (e) {
+      return "Unknown Date";
+    }
+  };
+
+  // Get badge variant for lead stage
+  const getStageBadgeVariant = (stage: string) => {
+    switch (stage) {
+      case "new":
+        return "default";
+      case "contacted":
+        return "secondary";
+      case "qualified":
+        return "outline";
+      case "proposal":
+        return "secondary";
+      case "negotiation":
+        return "default";
+      case "won":
+        return "success";
+      case "lost":
+        return "destructive";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -173,6 +291,7 @@ const UserManagement: React.FC = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -186,6 +305,7 @@ const UserManagement: React.FC = () => {
                           {user.role}
                         </Badge>
                       </TableCell>
+                      <TableCell>{user.dateJoined ? formatDate(user.dateJoined) : "Unknown"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
@@ -215,46 +335,195 @@ const UserManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* View User Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
+      {/* Enhanced User Details Dialog */}
+      <Dialog 
+        open={isViewDialogOpen} 
+        onOpenChange={(open) => {
+          setIsViewDialogOpen(open);
+          if (!open) {
+            // Clear URL parameter when dialog is closed
+            const url = new URL(window.location.href);
+            url.searchParams.delete('highlight');
+            window.history.replaceState({}, '', url.toString());
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
+            <DialogTitle className="text-xl">User Details</DialogTitle>
             <DialogDescription>
-              Detailed information about the selected user.
+              Complete information about {selectedUser?.name}
             </DialogDescription>
           </DialogHeader>
           
           {selectedUser && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <Tabs defaultValue="overview">
+              <TabsList className="mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="leads">Leads ({userLeads.length})</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-6">
                 <div>
-                  <div className="text-sm font-medium mb-1">User ID</div>
-                  <div className="text-sm bg-muted p-2 rounded-md">{selectedUser.id}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium mb-1">Role</div>
-                  <div>
-                    <Badge variant={selectedUser.role === "admin" ? "default" : "outline"} className="text-sm">
-                      {selectedUser.role}
-                    </Badge>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <UserCheck className="h-8 w-8 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{selectedUser.name}</h3>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Badge variant={selectedUser.role === "admin" ? "default" : "outline"}>
+                          {selectedUser.role}
+                        </Badge>
+                        <span className="text-xs">
+                          Joined {selectedUser.dateJoined ? formatDate(selectedUser.dateJoined) : "Unknown date"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <span>{selectedUser.email}</span>
+                      </div>
+                      
+                      <div className="flex items-start gap-2 text-sm">
+                        <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <span>{selectedUser.phone || "No phone number"}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <Building className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <span>{selectedUser.address || "No address provided"}</span>
+                      </div>
+                      
+                      <div className="flex items-start gap-2 text-sm">
+                        <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <span>User ID: {selectedUser.id}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Total Leads
+                        </div>
+                        <div className="text-2xl font-bold mt-1">
+                          {userStats.totalLeads}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Active Leads
+                        </div>
+                        <div className="text-2xl font-bold mt-1">
+                          {userStats.activeLeads}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Won Leads
+                        </div>
+                        <div className="text-2xl font-bold mt-1">
+                          {userStats.wonLeads}
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Conversion Rate
+                        </div>
+                        <div className="text-2xl font-bold mt-1">
+                          {userStats.conversionRate}%
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
-              </div>
+              </TabsContent>
               
-              <div>
-                <div className="text-sm font-medium mb-1">Name</div>
-                <div className="text-sm bg-muted p-2 rounded-md">{selectedUser.name}</div>
-              </div>
-              
-              <div>
-                <div className="text-sm font-medium mb-1">Email</div>
-                <div className="text-sm bg-muted p-2 rounded-md">{selectedUser.email}</div>
-              </div>
-            </div>
+              <TabsContent value="leads">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Lead Assignments</h3>
+                  {userLeads.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground border rounded-md">
+                      <p>This user doesn't have any leads assigned.</p>
+                    </div>
+                  ) : (
+                    <div className="border rounded-md max-h-[400px] overflow-y-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Lead Name</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead>Stage</TableHead>
+                            <TableHead>Updated</TableHead>
+                            <TableHead></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {userLeads.map(lead => (
+                            <TableRow key={lead.id}>
+                              <TableCell className="font-medium">{lead.name}</TableCell>
+                              <TableCell>{lead.company}</TableCell>
+                              <TableCell>
+                                <Badge variant={getStageBadgeVariant(lead.current_stage) as any}>
+                                  {lead.current_stage}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{formatDate(lead.updated_at)}</TableCell>
+                              <TableCell>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    setIsViewDialogOpen(false);
+                                    navigate(`/leads/${lead.id}`);
+                                  }}
+                                >
+                                  <Eye className="h-3.5 w-3.5 mr-1" />
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="mt-6">
+            {selectedUser && selectedUser.id !== currentUser?.id && (
+              <Button 
+                variant="destructive" 
+                className="mr-auto"
+                onClick={() => {
+                  setIsViewDialogOpen(false);
+                  handleDeleteConfirm(selectedUser);
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete User
+              </Button>
+            )}
             <Button onClick={() => setIsViewDialogOpen(false)}>
               Close
             </Button>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { getLeads } from "@/services/leadService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Users, 
   Settings, 
@@ -22,7 +24,8 @@ import {
   Download, 
   Upload, 
   Save, 
-  UserCog
+  UserCog,
+  RefreshCw
 } from "lucide-react";
 
 export function AdminUserName() {
@@ -33,16 +36,35 @@ export function AdminUserName() {
 const AdminPage: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [registeredUsers, setRegisteredUsers] = useState<any[]>([]);
   
-  useEffect(() => {
+  // Function to refresh data manually
+  const refreshData = async () => {
+    setIsLoading(true);
+    await fetchAllLeads();
+    fetchRegisteredUsers();
+    setLastRefreshed(new Date());
+    toast({
+      title: "Data Refreshed",
+      description: "Dashboard data has been updated."
+    });
+    setIsLoading(false);
+  };
+  
+  // Fetch registered users
+  const fetchRegisteredUsers = () => {
     const storedUsers = localStorage.getItem("registered_users");
     if (storedUsers) {
       setRegisteredUsers(JSON.parse(storedUsers));
     }
+  };
+  
+  useEffect(() => {
+    fetchRegisteredUsers();
   }, []);
   
   const getUserNameById = (userId: string): string => {
@@ -50,28 +72,64 @@ const AdminPage: React.FC = () => {
     return foundUser ? foundUser.name : `User ID: ${userId}`;
   };
   
+  // Function to fetch all leads
+  const fetchAllLeads = async () => {
+    try {
+      const allLeads = await getLeads();
+      setLeads(allLeads);
+      return allLeads;
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Setup real-time subscriptions
   useEffect(() => {
-    const fetchAllLeads = async () => {
-      try {
-        const allLeads = await getLeads();
-        setLeads(allLeads);
-      } catch (error) {
-        console.error("Error fetching leads:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (isAdmin()) {
-      fetchAllLeads();
-    } else {
+    if (!isAdmin()) {
       toast({
         title: "Access Denied",
         description: "You do not have permission to view the admin dashboard.",
         variant: "destructive"
       });
       navigate("/dashboard");
+      return;
     }
+
+    // Initial data fetch
+    fetchAllLeads();
+    
+    // Set up real-time subscription for leads table
+    const leadsChannel = supabase
+      .channel('public:leads')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'leads' }, 
+        (payload) => {
+          console.log('Leads change received:', payload);
+          // Refresh all data when any change happens
+          fetchAllLeads();
+          setLastRefreshed(new Date());
+      })
+      .subscribe();
+      
+    // Set up real-time subscription for lead_history table
+    const historyChannel = supabase
+      .channel('public:lead_history')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'lead_history' }, 
+        (payload) => {
+          console.log('Lead history change received:', payload);
+          fetchAllLeads();
+          setLastRefreshed(new Date());
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(leadsChannel);
+      supabase.removeChannel(historyChannel);
+    };
   }, [isAdmin, navigate, toast]);
   
   const totalLeads = leads.length;
@@ -83,13 +141,20 @@ const AdminPage: React.FC = () => {
   
   const assigneeCount: Record<string, number> = {};
   leads.forEach(lead => {
-    assigneeCount[lead.assigned_to] = (assigneeCount[lead.assigned_to] || 0) + 1;
+    if (lead.assigned_to) {
+      assigneeCount[lead.assigned_to] = (assigneeCount[lead.assigned_to] || 0) + 1;
+    }
   });
   
   const wonLeads = stageCount.won || 0;
   const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0;
 
-  const registeredUsersCount = JSON.parse(localStorage.getItem("registered_users") || "[]").length;
+  const registeredUsersCount = registeredUsers.length;
+  
+  // Format date for last refreshed timestamp
+  const formatLastRefreshed = () => {
+    return lastRefreshed.toLocaleTimeString();
+  };
   
   return (
     <div className="container px-4 py-6 max-w-7xl mx-auto space-y-6">
@@ -98,8 +163,21 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground flex items-center gap-2">
             Manage your CRM system and view analytics
+            <span className="text-xs text-muted-foreground">
+              Last updated: {formatLastRefreshed()}
+            </span>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-8 w-8 p-0" 
+              onClick={refreshData}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              <span className="sr-only">Refresh data</span>
+            </Button>
           </p>
         </div>
         
@@ -202,6 +280,10 @@ const AdminPage: React.FC = () => {
                     <div className="animate-pulse h-4 w-2/3 bg-muted rounded"></div>
                     <div className="animate-pulse h-4 w-1/2 bg-muted rounded"></div>
                   </div>
+                ) : Object.keys(stageCount).length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    No leads data available
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {Object.entries(stageCount).map(([stage, count]) => (
@@ -248,11 +330,21 @@ const AdminPage: React.FC = () => {
                     <div className="animate-pulse h-4 w-full bg-muted rounded"></div>
                     <div className="animate-pulse h-4 w-3/4 bg-muted rounded"></div>
                   </div>
+                ) : Object.keys(assigneeCount).length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    No assigned leads data available
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {Object.entries(assigneeCount).map(([userId, count]) => (
                       <div key={userId} className="flex justify-between items-center">
-                        <span>{getUserNameById(userId)}</span>
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto font-normal text-left" 
+                          onClick={() => navigate(`/admin/users?highlight=${userId}`)}
+                        >
+                          {getUserNameById(userId)}
+                        </Button>
                         <Badge variant="outline" className="ml-2">
                           {count} leads
                         </Badge>
