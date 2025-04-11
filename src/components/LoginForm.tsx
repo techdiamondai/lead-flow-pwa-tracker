@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, Shield } from "lucide-react";
 
@@ -179,10 +179,10 @@ export const LoginForm = () => {
             <strong>Demo accounts:</strong>
           </p>
           <p>
-            <strong>Admin:</strong> admin@example.com / admin
+            <strong>Admin:</strong> admin@example.com / admin123
           </p>
           <p>
-            <strong>User:</strong> user@example.com / user
+            <strong>User:</strong> user@example.com / user123
           </p>
         </div>
       </CardFooter>

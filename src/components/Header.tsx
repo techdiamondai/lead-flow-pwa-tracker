@@ -1,5 +1,6 @@
-import React, { useContext } from "react";
-import { AuthContext } from "@/hooks/auth/AuthContext";
+
+import React from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +15,13 @@ import { User, LogOut } from "lucide-react";
 
 // Create the HeaderNameFix component to access the correct user profile name
 export const HeaderNameFix = () => {
-  const { profile } = useContext(AuthContext);
+  const { profile } = useAuth();
   return profile?.name || "User";
 };
 
 // Export the Header component as default to fix import issues
 const Header = () => {
-  const { profile, isAuthenticated, logout } = useContext(AuthContext);
+  const { profile, isAuthenticated, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();

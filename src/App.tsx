@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "@/hooks/toast";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/hooks/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import MainLayout from "@/layouts/MainLayout";
 import React from "react";
