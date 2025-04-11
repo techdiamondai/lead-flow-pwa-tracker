@@ -25,7 +25,11 @@ export const login = async (email: string, password: string, isAdminLogin = fals
         .eq('id', data.user?.id)
         .maybeSingle();
 
-      if (adminError || !adminUser) {
+      if (adminError) {
+        console.error("Error checking admin status:", adminError);
+      }
+
+      if (!adminUser) {
         toast({
           title: "Access Denied",
           description: "You do not have administrator privileges",

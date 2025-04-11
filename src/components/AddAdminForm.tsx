@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createAdminUser } from "@/hooks/auth/utils/roleUtils";
@@ -26,7 +25,13 @@ const AddAdminForm = () => {
           throw error;
         }
         
-        setUsers(data as UserProfile[]);
+        // Filter out users who are already admins
+        const { data: admins } = await supabase.from('admin_users').select('id');
+        const adminIds = admins ? admins.map(admin => admin.id) : [];
+        
+        const filteredUsers = data ? data.filter(user => !adminIds.includes(user.id)) : [];
+        
+        setUsers(filteredUsers as UserProfile[]);
       } catch (error) {
         console.error("Error fetching users:", error);
         toast({
@@ -73,6 +78,9 @@ const AddAdminForm = () => {
           description: `${selectedUser.name} has been promoted to admin.`
         });
         setSelectedUserId("");
+        
+        // Remove the added user from the list
+        setUsers(users.filter(user => user.id !== selectedUserId));
       } else {
         throw new Error("Failed to create admin user");
       }
@@ -107,6 +115,11 @@ const AddAdminForm = () => {
             <SelectValue placeholder="Select a user" />
           </SelectTrigger>
           <SelectContent>
+            {users.length === 0 && (
+              <SelectItem value="no-users" disabled>
+                No eligible users found
+              </SelectItem>
+            )}
             {users.map(user => (
               <SelectItem key={user.id} value={user.id}>
                 {user.name} ({user.email})

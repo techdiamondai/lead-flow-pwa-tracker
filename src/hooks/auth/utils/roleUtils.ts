@@ -40,6 +40,18 @@ export const hasRole = (profile: UserProfile | null, role: UserRole): boolean =>
  */
 export const createAdminUser = async (name: string, email: string, userId: string): Promise<boolean> => {
   try {
+    // First check if the user is already an admin to prevent duplicate entries
+    const { data: existingAdmin } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+      
+    if (existingAdmin) {
+      console.log("User is already an admin");
+      return true; // User is already an admin, so return success
+    }
+    
     // Insert the user into the admin_users table
     const { error } = await supabase
       .from('admin_users')

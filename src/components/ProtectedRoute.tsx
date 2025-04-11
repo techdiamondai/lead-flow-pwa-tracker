@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/toast";
+import { isAdmin } from "@/hooks/auth/utils/roleUtils";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,41 +19,44 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isAdminChecking, setIsAdminChecking] = useState<boolean>(requireAdmin);
   const location = useLocation();
   
+  // Check admin status when profile is available
   useEffect(() => {
-    // Only check admin status if required
-    if (requireAdmin && profile && isAuthenticated) {
+    if (!requireAdmin) return;
+    
+    if (profile && isAuthenticated) {
       setIsAdminChecking(true);
       
-      // Import the isAdmin function dynamically to prevent circular dependencies
-      import("@/hooks/auth/utils/roleUtils").then(({ isAdmin }) => {
-        isAdmin(profile).then((result) => {
-          setIsAdminUser(result);
+      const checkAdminStatus = async () => {
+        try {
+          const adminStatus = await isAdmin(profile);
+          console.log("Admin check result:", adminStatus, "for user:", profile.id);
+          setIsAdminUser(adminStatus);
+        } catch (error) {
+          console.error("Admin check error:", error);
+          setIsAdminUser(false);
+        } finally {
           setIsAdminChecking(false);
-        });
-      });
+        }
+      };
+      
+      checkAdminStatus();
+    } else {
+      setIsAdminUser(false);
+      setIsAdminChecking(false);
     }
-  }, [requireAdmin, isAuthenticated, profile]);
+  }, [profile, isAuthenticated, requireAdmin]);
   
+  // Debug logging
   useEffect(() => {
-    // Debug information to help diagnose issues
     console.log("ProtectedRoute - Auth State:", { 
       isAuthenticated, 
       isLoading, 
       isAdminUser,
       isAdminChecking,
       requireAdmin,
-      user: user?.id,
+      userId: user?.id,
       path: location.pathname
     });
-
-    // Show toast when authentication fails to redirect
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access this page",
-        variant: "destructive"
-      });
-    }
   }, [isAuthenticated, isLoading, isAdminUser, requireAdmin, user, location.pathname, isAdminChecking]);
   
   // Show loading state while checking authentication or admin status
@@ -67,15 +71,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
   
+  // Not authenticated, redirect to login
   if (!isAuthenticated) {
     console.log("Redirecting to login from:", location.pathname);
-    // Redirect to appropriate login page based on whether admin access is required
     return <Navigate to={requireAdmin ? "/admin-login" : "/login"} state={{ from: location }} replace />;
   }
   
+  // Check admin access if required
   if (requireAdmin && !isAdminUser) {
     console.log("Admin access denied, redirecting to dashboard");
-    // Redirect to dashboard if admin access is required but user is not admin
     toast({
       title: "Access Denied",
       description: "You need administrator privileges to access this page",

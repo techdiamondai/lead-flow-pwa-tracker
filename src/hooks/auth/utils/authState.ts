@@ -13,27 +13,43 @@ export const useAuthState = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
+    let isMounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.id);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsLoading(false);
+        
+        if (isMounted) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          setIsLoading(false);
+        }
       }
     );
 
     // Then check current session
     const initAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setIsLoading(false);
+      try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (isMounted) {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching session:", error);
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
 
     initAuth();
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);

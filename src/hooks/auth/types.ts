@@ -21,5 +21,5 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
-  isAdmin: () => boolean;
+  isAdmin: () => Promise<boolean>;
 }
