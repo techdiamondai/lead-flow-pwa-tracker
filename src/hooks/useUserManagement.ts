@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface User {
   id: string;
@@ -18,26 +19,98 @@ export const useUserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  // Load users from localStorage
+  // Load users from both Supabase and localStorage
   useEffect(() => {
-    const loadUsers = () => {
+    const loadUsers = async () => {
       try {
         setIsLoading(true);
-        const storedUsers = localStorage.getItem("registered_users");
-        if (storedUsers) {
-          const parsedUsers: User[] = JSON.parse(storedUsers);
+        const allUsers: User[] = [];
+        
+        // 1. Fetch profiles from Supabase
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, email, role, created_at');
           
-          // Add dateJoined if not present
-          const usersWithJoinDate = parsedUsers.map(user => ({
-            ...user,
-            dateJoined: user.dateJoined || new Date().toISOString()
-          }));
+        if (profilesError) {
+          console.error("Error loading users from profiles:", profilesError);
+          toast({
+            title: "Error",
+            description: "Could not load users from database.",
+            variant: "destructive"
+          });
+        } else if (profilesData) {
+          // Add profiles data to users array
+          profilesData.forEach(profile => {
+            allUsers.push({
+              id: profile.id,
+              name: profile.name || 'Unknown',
+              email: profile.email || 'Unknown',
+              role: profile.role || 'user',
+              dateJoined: profile.created_at
+            });
+          });
           
-          setUsers(usersWithJoinDate);
-          setFilteredUsers(usersWithJoinDate);
+          console.log("Loaded users from Supabase profiles:", profilesData.length);
         }
+        
+        // 2. Also try to get admin_users from Supabase
+        const { data: adminData, error: adminError } = await supabase
+          .from('admin_users')
+          .select('id, name, email, created_at');
+          
+        if (adminError) {
+          console.error("Error loading admin users:", adminError);
+        } else if (adminData) {
+          // Make sure we don't add duplicate users already in profiles
+          const adminUsers = adminData.filter(
+            admin => !allUsers.some(user => user.id === admin.id)
+          );
+          
+          // Add admin users to the array
+          adminUsers.forEach(admin => {
+            allUsers.push({
+              id: admin.id,
+              name: admin.name || 'Unknown',
+              email: admin.email || 'Unknown',
+              role: 'admin',
+              dateJoined: admin.created_at
+            });
+          });
+          
+          console.log("Loaded additional admin users:", adminUsers.length);
+        }
+        
+        // 3. Check localStorage for any users not yet in Supabase
+        try {
+          const storedUsers = localStorage.getItem("registered_users");
+          if (storedUsers) {
+            const parsedUsers: User[] = JSON.parse(storedUsers);
+            
+            // Filter out any users that are already in our list
+            const uniqueLocalUsers = parsedUsers.filter(
+              localUser => !allUsers.some(user => user.id === localUser.id)
+            );
+            
+            // Add unique local users to the array
+            uniqueLocalUsers.forEach(user => {
+              allUsers.push({
+                ...user,
+                dateJoined: user.dateJoined || new Date().toISOString()
+              });
+            });
+            
+            console.log("Loaded additional users from localStorage:", uniqueLocalUsers.length);
+          }
+        } catch (error) {
+          console.error("Error parsing local users:", error);
+        }
+        
+        // Set the users and filtered users state
+        console.log("Total users loaded:", allUsers.length);
+        setUsers(allUsers);
+        setFilteredUsers(allUsers);
       } catch (error) {
-        console.error("Error loading users:", error);
+        console.error("Error in loadUsers:", error);
         toast({
           title: "Error",
           description: "Could not load user data.",
@@ -83,7 +156,10 @@ export const useUserManagement = () => {
     }
   };
   
-  const promoteSelectedToAdmin = () => {
+  const promoteSelectedToAdmin = async () => {
+    // Implementation for promoting users to admin would go here
+    // This would use createAdminUser from roleUtils for each selected user
+    
     toast({
       description: `Promoted ${selectedUsers.length} user(s) to admin.`,
     });
