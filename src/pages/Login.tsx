@@ -7,7 +7,7 @@ const Login: React.FC = () => {
   return (
     <AuthLayout 
       title="Sign in to your account"
-      subtitle="Welcome back"
+      subtitle="Welcome back to DiamondFlow CRM"
     >
       <LoginForm />
     </AuthLayout>

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      {/* Background elements */}
       <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-indigo-50/30 to-purple-50/30" />
       
@@ -31,6 +33,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-tr from-purple-300/20 to-pink-400/20 rounded-full filter blur-2xl opacity-70" />
       <div className="absolute bottom-1/4 right-1/4 w-36 h-36 bg-gradient-to-bl from-cyan-300/20 to-blue-400/20 rounded-full filter blur-2xl opacity-70" />
       
+      {/* Floating shapes for extra visual appeal */}
+      <div className="absolute top-1/3 right-1/3 w-16 h-16 bg-blue-300/10 rounded-full animate-float" />
+      <div className="absolute bottom-1/3 left-1/3 w-12 h-12 bg-indigo-300/10 rounded-full animate-float-delayed" />
+      <div className="absolute top-2/3 right-2/3 w-8 h-8 bg-purple-300/10 rounded-full animate-float" />
+      
+      {/* Content */}
       <div className="w-full max-w-md space-y-6 relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">

@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Shield } from "lucide-react";
 
 // Form validation schema
 const formSchema = z.object({
@@ -58,6 +58,13 @@ export const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex rounded-md bg-blue-50 p-2">
+            <Shield className="h-6 w-6 text-blue-600" />
+            <span className="ml-2 text-sm text-blue-700">Admin and User Login</span>
+          </div>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -165,6 +172,7 @@ export const LoginForm = () => {
           <Link to="/register" className="text-blue-600 hover:underline font-medium">
             Create one
           </Link>
+          <span className="block mt-2 text-xs text-muted-foreground">(Admin accounts are created by system administrators only)</span>
         </p>
         <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 text-muted-foreground">
           <p>
