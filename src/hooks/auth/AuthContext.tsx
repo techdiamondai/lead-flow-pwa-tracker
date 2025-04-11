@@ -14,5 +14,5 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   forgotPassword: async () => false,
   resetPassword: async () => false,
-  isAdmin: () => false,
+  isAdmin: async () => false, // Updated to return Promise<boolean>
 });
