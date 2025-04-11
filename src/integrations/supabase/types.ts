@@ -142,6 +142,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_user: {
+        Args: { admin_id: string; admin_name: string; admin_email: string }
+        Returns: boolean
+      }
       get_function_exists: {
         Args: { function_name: string }
         Returns: boolean
