@@ -24,9 +24,11 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   userName,
   onConfirm,
 }) => {
+  console.log("DeleteUserDialog rendering", { open, userName });
+  
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-white">
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -37,7 +39,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 text-white"
             onClick={onConfirm}
           >
             Delete

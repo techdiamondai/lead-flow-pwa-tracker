@@ -9,4 +9,6 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
+// Add a console log to confirm mounting
+console.log("Mounting application to root element");
 createRoot(rootElement).render(<App />);

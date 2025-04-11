@@ -41,77 +41,75 @@ const App = () => {
   console.log("App rendering");
   
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <TooltipProvider>
-            <BrowserRouter>
-              <AuthProvider>
-                <Routes>
-                  <Route path="/" element={<MainLayout />}>
-                    {/* Public routes */}
-                    <Route index element={<Index />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="admin-login" element={<AdminLogin />} />
-                    <Route path="register" element={<Register />} />
-                    <Route path="forgot-password" element={<ForgotPassword />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
-                    
-                    {/* Protected routes */}
-                    <Route path="dashboard" element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="leads" element={
-                      <ProtectedRoute>
-                        <LeadsPage />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="leads/new" element={
-                      <ProtectedRoute>
-                        <NewLeadPage />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="leads/:id" element={
-                      <ProtectedRoute>
-                        <LeadDetailPage />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="leads/:id/edit" element={
-                      <ProtectedRoute>
-                        <EditLeadPage />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="admin" element={
-                      <ProtectedRoute requireAdmin>
-                        <Admin />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="admin/users" element={
-                      <ProtectedRoute requireAdmin>
-                        <UserManagement />
-                      </ProtectedRoute>
-                    } />
-                    
-                    {/* Catch-all route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                </Routes>
-                <Toaster />
-                <Sonner />
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </ToastProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<MainLayout />}>
+                  {/* Public routes */}
+                  <Route index element={<Index />} />
+                  <Route path="login" element={<Login />} />
+                  <Route path="admin-login" element={<AdminLogin />} />
+                  <Route path="register" element={<Register />} />
+                  <Route path="forgot-password" element={<ForgotPassword />} />
+                  <Route path="reset-password" element={<ResetPassword />} />
+                  
+                  {/* Protected routes */}
+                  <Route path="dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads" element={
+                    <ProtectedRoute>
+                      <LeadsPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/new" element={
+                    <ProtectedRoute>
+                      <NewLeadPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/:id" element={
+                    <ProtectedRoute>
+                      <LeadDetailPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="leads/:id/edit" element={
+                    <ProtectedRoute>
+                      <EditLeadPage />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="admin/users" element={
+                    <ProtectedRoute requireAdmin>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Catch-all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+              <Toaster />
+              <Sonner />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 };
 
