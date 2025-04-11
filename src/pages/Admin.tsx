@@ -4,10 +4,13 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Users, FileText, Settings, ChevronRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Users, FileText, Settings, ChevronRight, CheckCircle, Clock, AlertCircle, BarChart3, Layout, UserPlus } from "lucide-react";
 import AddAdminForm from "@/components/AddAdminForm";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { AdminLeadManagement } from "@/components/AdminLeadManagement";
+import { AdminUserManagement } from "@/components/AdminUserManagement";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const Admin = () => {
   const [leadStats, setLeadStats] = useState({
@@ -21,8 +24,6 @@ const Admin = () => {
     adminUsers: 0,
     regularUsers: 0
   });
-  const [recentLeads, setRecentLeads] = useState([]);
-  const [recentUsers, setRecentUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -48,13 +49,6 @@ const Admin = () => {
             wonLeads: wonLeads.length,
             lostLeads: lostLeads.length
           });
-          
-          // Get 5 most recent leads
-          const sortedLeads = [...leads].sort((a, b) => 
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-          ).slice(0, 5);
-          
-          setRecentLeads(sortedLeads);
         }
         
         // Fetch user statistics
@@ -76,15 +70,7 @@ const Admin = () => {
           adminUsers: adminUsers ? adminUsers.length : 0,
           regularUsers: parsedUsers.length - (adminUsers ? adminUsers.length : 0)
         });
-        
-        // Get 5 most recent users
-        const sortedUsers = [...parsedUsers].sort((a, b) => {
-          const dateA = a.dateJoined ? new Date(a.dateJoined).getTime() : 0;
-          const dateB = b.dateJoined ? new Date(b.dateJoined).getTime() : 0;
-          return dateB - dateA;
-        }).slice(0, 5);
-        
-        setRecentUsers(sortedUsers);
+
       } catch (error) {
         console.error("Error fetching admin data:", error);
       } finally {
@@ -118,58 +104,70 @@ const Admin = () => {
     <ProtectedRoute requireAdmin={true}>
       <div className="container mx-auto py-10 space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your application settings, users and leads</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Admin Dashboard
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Manage your application settings, users and leads
+          </p>
         </div>
         
-        {/* Stats Overview Section */}
+        {/* Stats Overview Section with improved design */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="overflow-hidden border-t-4 border-t-blue-500 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <Users className="h-4 w-4 text-blue-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : userStats.totalUsers}</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : userStats.totalUsers}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {userStats.adminUsers} admins, {userStats.regularUsers} regular users
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="overflow-hidden border-t-4 border-t-indigo-500 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                <FileText className="h-4 w-4 text-indigo-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? "..." : leadStats.totalLeads}</div>
+              <div className="text-3xl font-bold">{isLoading ? "..." : leadStats.totalLeads}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {leadStats.activeLeads} active leads
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="overflow-hidden border-t-4 border-t-green-500 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Won Leads</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{isLoading ? "..." : leadStats.wonLeads}</div>
+              <div className="text-3xl font-bold text-green-600">{isLoading ? "..." : leadStats.wonLeads}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {leadStats.totalLeads > 0 ? Math.round((leadStats.wonLeads / leadStats.totalLeads) * 100) : 0}% conversion rate
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="overflow-hidden border-t-4 border-t-red-500 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Lost Leads</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-500" />
+              <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{isLoading ? "..." : leadStats.lostLeads}</div>
+              <div className="text-3xl font-bold text-red-600">{isLoading ? "..." : leadStats.lostLeads}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {leadStats.totalLeads > 0 ? Math.round((leadStats.lostLeads / leadStats.totalLeads) * 100) : 0}% lost rate
               </p>
@@ -177,130 +175,143 @@ const Admin = () => {
           </Card>
         </div>
         
-        {/* Quick Access Section */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <Users className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage user accounts and roles</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View, edit, and delete user accounts. Manage user roles and permissions.
-              </p>
-              
-              {!isLoading && recentUsers.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Recent Users</h4>
-                  <div className="space-y-2">
-                    {recentUsers.map((user) => (
-                      <div key={user.id} className="flex justify-between items-center border-b pb-2">
-                        <div>
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                        <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>{user.role}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/admin/users">
-                  Manage Users
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+        {/* Management Tabs Section */}
+        <Tabs defaultValue="users" className="space-y-6">
+          <div className="border-b">
+            <TabsList className="w-full justify-start h-12 bg-transparent p-0">
+              <TabsTrigger value="users" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
+                <Users className="mr-2 h-4 w-4" />
+                User Management
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
+                <FileText className="mr-2 h-4 w-4" />
+                Lead Management
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
+                <Settings className="mr-2 h-4 w-4" />
+                System Settings
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <Card>
-            <CardHeader>
-              <FileText className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>Lead Management</CardTitle>
-              <CardDescription>Monitor and manage sales leads</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View comprehensive reports on leads, conversions, and sales activities.
-              </p>
-              
-              {!isLoading && recentLeads.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Recent Leads</h4>
-                  <div className="space-y-2">
-                    {recentLeads.map((lead) => (
-                      <div key={lead.id} className="flex justify-between items-center border-b pb-2">
-                        <div>
-                          <p className="text-sm font-medium">{lead.name}</p>
-                          <p className="text-xs text-muted-foreground">{lead.company}</p>
-                        </div>
-                        <Badge variant={getStageBadgeVariant(lead.current_stage)}>
-                          {lead.current_stage}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/leads">
-                  View All Leads
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+          <TabsContent value="users" className="space-y-6">
+            <AdminUserManagement />
+          </TabsContent>
           
-          <Card>
-            <CardHeader>
-              <Settings className="h-8 w-8 mb-2 text-primary" />
-              <CardTitle>System Settings</CardTitle>
-              <CardDescription>Configure system parameters</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Adjust system settings, integrations, and application behavior.
-              </p>
+          <TabsContent value="leads" className="space-y-6">
+            <AdminLeadManagement />
+          </TabsContent>
+          
+          <TabsContent value="settings" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>System Configuration</CardTitle>
+                  <CardDescription>Adjust system settings and parameters</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-medium">Application Information</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-muted-foreground">Version:</span>
+                          <span className="ml-2 font-medium">1.0.0</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Environment:</span>
+                          <span className="ml-2 font-medium">Production</span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-muted-foreground">Database:</span>
+                          <span className="ml-2 font-medium">Connected</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Last Backup:</span>
+                          <span className="ml-2 font-medium">N/A</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline">View System Logs</Button>
+                </CardFooter>
+              </Card>
               
-              <div className="mt-4">
-                <h4 className="text-sm font-semibold mb-2">System Information</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Database Status</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">Connected</Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Last Backup</span>
-                    <span className="text-sm">N/A</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">System Version</span>
-                    <span className="text-sm">1.0.0</span>
-                  </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Links</CardTitle>
+                  <CardDescription>Access common admin functions</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button asChild variant="outline" className="w-full justify-between">
+                    <Link to="/admin/users">
+                      <span className="flex items-center">
+                        <Users className="mr-2 h-4 w-4" />
+                        Manage Users
+                      </span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full justify-between">
+                    <Link to="/leads">
+                      <span className="flex items-center">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Manage Leads
+                      </span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full justify-between">
+                    <Link to="/dashboard">
+                      <span className="flex items-center">
+                        <Layout className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="stats" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics Dashboard</CardTitle>
+                <CardDescription>Comprehensive analytics for the CRM platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center h-[300px] border rounded-md">
+                  <p className="text-muted-foreground">Analytics visualization will appear here.</p>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/admin/settings">
-                  Configure Settings
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
         
         {/* Add Admin Form */}
-        <div className="max-w-md border p-6 rounded-lg bg-card">
-          <h3 className="text-lg font-medium mb-4">Add New Administrator</h3>
-          <AddAdminForm />
+        <div id="admin-form-section" className="border rounded-lg bg-card shadow-sm">
+          <CardHeader>
+            <div className="flex items-center">
+              <UserPlus className="h-5 w-5 mr-2 text-primary" />
+              <CardTitle>Add New Administrator</CardTitle>
+            </div>
+            <CardDescription>
+              Create a new admin user with full system access
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AddAdminForm />
+          </CardContent>
         </div>
       </div>
     </ProtectedRoute>
