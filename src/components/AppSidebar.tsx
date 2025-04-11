@@ -36,7 +36,7 @@ interface NavItem {
   path: string;
   icon: React.ComponentType<any>;
   authRequired: boolean;
-  adminRequired?: boolean; // Make this optional since not all items need it
+  adminRequired?: boolean; 
 }
 
 export const AppSidebar = () => {
@@ -50,6 +50,8 @@ export const AppSidebar = () => {
       if (isAuthenticated) {
         const admin = await isAdmin();
         setAdminStatus(admin);
+      } else {
+        setAdminStatus(false);
       }
     };
     checkAdminStatus();
@@ -72,6 +74,7 @@ export const AppSidebar = () => {
       },
     ];
 
+    // Only add admin items if user is an admin
     if (adminStatus) {
       items.push(
         {

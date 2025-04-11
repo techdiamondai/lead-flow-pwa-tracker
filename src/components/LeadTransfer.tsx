@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { transferLeads } from "@/services/leadService";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/auth";
 import { useToast } from "@/hooks/use-toast";
 import { UsersIcon } from "lucide-react";
 
@@ -37,6 +37,19 @@ export const LeadTransfer: React.FC<LeadTransferProps> = ({
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
+  
+  // Check admin status
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (currentUser) {
+        const adminStatus = await isAdmin();
+        setIsAdminUser(adminStatus);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [currentUser, isAdmin]);
   
   // Load real users from localStorage instead of mock data
   useEffect(() => {
@@ -104,7 +117,7 @@ export const LeadTransfer: React.FC<LeadTransferProps> = ({
   };
   
   // Only admins can transfer leads
-  if (!isAdmin()) return null;
+  if (!isAdminUser) return null;
   
   // Don't show transfer option if no leads are selected
   if (selectedLeads.length === 0) return null;
