@@ -13,6 +13,9 @@ export const useUserSearchFilter = (
 ) => {
   // Filter users based on search query
   useEffect(() => {
-    setFilteredUsers(filterUsersByQuery(users, searchQuery));
+    if (searchQuery === undefined) return; // Guard against undefined searchQuery
+    
+    const filteredResults = filterUsersByQuery(users, searchQuery);
+    setFilteredUsers(filteredResults);
   }, [searchQuery, users, setFilteredUsers]);
 };

@@ -5,7 +5,7 @@ import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User } from "@/hooks/userManagement"; // Updated import path
+import { User } from "@/types/user.types"; // Updated to import directly from the type file
 
 interface UserTableProps {
   users: User[];
