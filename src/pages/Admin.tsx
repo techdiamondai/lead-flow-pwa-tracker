@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Users, FileText, Settings, ChevronRight, Activity, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Users, FileText, Settings, ChevronRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import AddAdminForm from "@/components/AddAdminForm";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -97,9 +97,9 @@ const Admin = () => {
 
   const getStageBadgeVariant = (stage) => {
     switch (stage) {
-      case "won": return "success";
+      case "won": return "default"; // Changed from "success" to "default"
       case "lost": return "destructive";
-      case "negotiation": return "warning";
+      case "negotiation": return "secondary"; // Changed from "warning" to "secondary"
       default: return "default";
     }
   };
