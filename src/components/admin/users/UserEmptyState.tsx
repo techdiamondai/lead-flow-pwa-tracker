@@ -38,7 +38,7 @@ export const UserEmptyState: React.FC<UserEmptyStateProps> = ({
       </p>
       {refetchUsers && (
         <Button 
-          variant="outline" 
+          variant="default" 
           className="mt-4"
           onClick={refetchUsers}
         >

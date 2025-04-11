@@ -9,6 +9,7 @@ import { UserTable } from "@/components/admin/users/UserTable";
 import { UserLoadingState } from "@/components/admin/users/UserLoadingState";
 import { UserEmptyState } from "@/components/admin/users/UserEmptyState";
 import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export const AdminUserManagement: React.FC = () => {
   const {
@@ -24,13 +25,24 @@ export const AdminUserManagement: React.FC = () => {
     refetchUsers
   } = useUserManagement();
   
+  const { toast } = useToast();
+  
   useEffect(() => {
     console.log("AdminUserManagement rendered", {
       usersLoaded: filteredUsers.length,
       isLoading,
       error
     });
-  }, [filteredUsers, isLoading, error]);
+    
+    // Show a toast if there's an error
+    if (error) {
+      toast({
+        title: "Error loading users",
+        description: error,
+        variant: "destructive"
+      });
+    }
+  }, [filteredUsers, isLoading, error, toast]);
   
   return (
     <Card>
@@ -53,18 +65,18 @@ export const AdminUserManagement: React.FC = () => {
 
         {isLoading ? (
           <UserLoadingState />
-        ) : filteredUsers.length === 0 ? (
-          <UserEmptyState 
-            error={error} 
-            refetchUsers={refetchUsers}
-            isLoading={isLoading}
-          />
-        ) : (
+        ) : filteredUsers && filteredUsers.length > 0 ? (
           <UserTable 
             users={filteredUsers}
             selectedUsers={selectedUsers}
             onSelectUser={handleSelectUser}
             onSelectAll={handleSelectAll}
+          />
+        ) : (
+          <UserEmptyState 
+            error={error} 
+            refetchUsers={refetchUsers}
+            isLoading={isLoading}
           />
         )}
       </CardContent>
