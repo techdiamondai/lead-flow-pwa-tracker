@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Users, FileText, Settings, ChevronRight, CheckCircle, Clock, AlertCircle, BarChart3, Layout, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import AddAdminForm from "@/components/AddAdminForm";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
 import { AdminLeadManagement } from "@/components/AdminLeadManagement";
 import { AdminUserManagement } from "@/components/AdminUserManagement";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AdminStatsOverview } from "@/components/admin/AdminStatsOverview";
+import { AdminSystemSettings } from "@/components/admin/AdminSystemSettings";
+import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 
 const Admin = () => {
   const [leadStats, setLeadStats] = useState({
@@ -81,25 +81,6 @@ const Admin = () => {
     fetchData();
   }, []);
 
-  const getStageBadgeVariant = (stage) => {
-    switch (stage) {
-      case "won": return "default"; // Changed from "success" to "default"
-      case "lost": return "destructive";
-      case "negotiation": return "secondary"; // Changed from "warning" to "secondary"
-      default: return "default";
-    }
-  };
-  
-  const formatDate = (dateString) => {
-    if (!dateString) return "Unknown";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    }).format(date);
-  };
-
   return (
     <ProtectedRoute requireAdmin={true}>
       <div className="container mx-auto py-10 space-y-8">
@@ -112,87 +93,27 @@ const Admin = () => {
           </p>
         </div>
         
-        {/* Stats Overview Section with improved design */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="overflow-hidden border-t-4 border-t-blue-500 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : userStats.totalUsers}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {userStats.adminUsers} admins, {userStats.regularUsers} regular users
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-t-4 border-t-indigo-500 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                <FileText className="h-4 w-4 text-indigo-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{isLoading ? "..." : leadStats.totalLeads}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {leadStats.activeLeads} active leads
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-t-4 border-t-green-500 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Won Leads</CardTitle>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{isLoading ? "..." : leadStats.wonLeads}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {leadStats.totalLeads > 0 ? Math.round((leadStats.wonLeads / leadStats.totalLeads) * 100) : 0}% conversion rate
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border-t-4 border-t-red-500 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Lost Leads</CardTitle>
-              <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">{isLoading ? "..." : leadStats.lostLeads}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {leadStats.totalLeads > 0 ? Math.round((leadStats.lostLeads / leadStats.totalLeads) * 100) : 0}% lost rate
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Stats Overview Section */}
+        <AdminStatsOverview 
+          userStats={userStats} 
+          leadStats={leadStats} 
+          isLoading={isLoading} 
+        />
         
         {/* Management Tabs Section */}
         <Tabs defaultValue="users" className="space-y-6">
           <div className="border-b">
             <TabsList className="w-full justify-start h-12 bg-transparent p-0">
               <TabsTrigger value="users" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
-                <Users className="mr-2 h-4 w-4" />
-                User Management
+                Users
               </TabsTrigger>
               <TabsTrigger value="leads" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
-                <FileText className="mr-2 h-4 w-4" />
-                Lead Management
+                Leads
               </TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
-                <Settings className="mr-2 h-4 w-4" />
-                System Settings
+                Settings
               </TabsTrigger>
               <TabsTrigger value="stats" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none border-b-2 border-transparent px-4 h-12">
-                <BarChart3 className="mr-2 h-4 w-4" />
                 Analytics
               </TabsTrigger>
             </TabsList>
@@ -207,94 +128,11 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="settings" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>System Configuration</CardTitle>
-                  <CardDescription>Adjust system settings and parameters</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">Application Information</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-3">
-                        <div>
-                          <span className="text-muted-foreground">Version:</span>
-                          <span className="ml-2 font-medium">1.0.0</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Environment:</span>
-                          <span className="ml-2 font-medium">Production</span>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <span className="text-muted-foreground">Database:</span>
-                          <span className="ml-2 font-medium">Connected</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Last Backup:</span>
-                          <span className="ml-2 font-medium">N/A</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline">View System Logs</Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Links</CardTitle>
-                  <CardDescription>Access common admin functions</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button asChild variant="outline" className="w-full justify-between">
-                    <Link to="/admin/users">
-                      <span className="flex items-center">
-                        <Users className="mr-2 h-4 w-4" />
-                        Manage Users
-                      </span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full justify-between">
-                    <Link to="/leads">
-                      <span className="flex items-center">
-                        <FileText className="mr-2 h-4 w-4" />
-                        Manage Leads
-                      </span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full justify-between">
-                    <Link to="/dashboard">
-                      <span className="flex items-center">
-                        <Layout className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <AdminSystemSettings />
           </TabsContent>
           
           <TabsContent value="stats" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics Dashboard</CardTitle>
-                <CardDescription>Comprehensive analytics for the CRM platform</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-[300px] border rounded-md">
-                  <p className="text-muted-foreground">Analytics visualization will appear here.</p>
-                </div>
-              </CardContent>
-            </Card>
+            <AdminAnalytics />
           </TabsContent>
         </Tabs>
         
