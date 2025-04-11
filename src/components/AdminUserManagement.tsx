@@ -16,9 +16,11 @@ export const AdminUserManagement: React.FC = () => {
     setSearchQuery,
     selectedUsers,
     isLoading,
+    error,
     handleSelectUser,
     handleSelectAll,
-    promoteSelectedToAdmin
+    promoteSelectedToAdmin,
+    refetchUsers
   } = useUserManagement();
   
   return (
@@ -43,7 +45,7 @@ export const AdminUserManagement: React.FC = () => {
         {isLoading ? (
           <UserLoadingState />
         ) : filteredUsers.length === 0 ? (
-          <UserEmptyState />
+          <UserEmptyState error={error} refetchUsers={refetchUsers} />
         ) : (
           <UserTable 
             users={filteredUsers}
