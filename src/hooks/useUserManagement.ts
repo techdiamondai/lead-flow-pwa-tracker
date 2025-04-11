@@ -1,15 +1,16 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { User } from "@/types/user.types";
+import { 
+  fetchUserProfiles, 
+  fetchAdminUsers, 
+  getLocalUsers, 
+  createTestUser, 
+  saveTestUserToLocalStorage 
+} from "@/services/userDataService";
+import { mergeUniqueUsers, filterUsersByQuery } from "@/utils/userManagementUtils";
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  dateJoined?: string;
-}
+export type { User } from "@/types/user.types";
 
 export const useUserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -25,125 +26,29 @@ export const useUserManagement = () => {
       console.log("🔄 Starting to load users...");
       setIsLoading(true);
       setError(null);
-      const allUsers: User[] = [];
       
-      // 1. Fetch profiles from Supabase
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, email, role, created_at');
+      // 1. Fetch users from different sources
+      const profileUsers = await fetchUserProfiles().catch(() => []);
+      const adminUsers = await fetchAdminUsers().catch(() => []);
+      const localUsers = getLocalUsers();
       
-      console.log("📊 Profiles fetch result:", { data: profilesData?.length || 0, error: profilesError?.message });
-        
-      if (profilesError) {
-        console.error("⚠️ Error loading profiles:", profilesError);
-        throw new Error(`Database error: ${profilesError.message}`);
-      }
-
-      if (profilesData && profilesData.length > 0) {
-        // Add profiles data to users array
-        profilesData.forEach(profile => {
-          allUsers.push({
-            id: profile.id,
-            name: profile.name || 'Unknown',
-            email: profile.email || 'Unknown',
-            role: profile.role || 'user',
-            dateJoined: profile.created_at
-          });
-        });
-        
-        console.log("✅ Successfully loaded users from profiles:", profilesData.length);
-      } else {
-        console.log("⚠️ No profiles found in database");
-      }
-      
-      // 2. Also try to get admin_users from Supabase
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id, name, email, created_at');
-        
-      console.log("📊 Admin users fetch result:", { data: adminData?.length || 0, error: adminError?.message });
-      
-      if (adminError) {
-        console.error("⚠️ Error loading admin users:", adminError);
-        // Don't throw here, we can continue with profiles
-      } else if (adminData && adminData.length > 0) {
-        // Make sure we don't add duplicate users already in profiles
-        const adminUsers = adminData.filter(
-          admin => !allUsers.some(user => user.id === admin.id)
-        );
-        
-        // Add admin users to the array
-        adminUsers.forEach(admin => {
-          allUsers.push({
-            id: admin.id,
-            name: admin.name || 'Unknown',
-            email: admin.email || 'Unknown',
-            role: 'admin',
-            dateJoined: admin.created_at
-          });
-        });
-        
-        console.log("✅ Successfully loaded admin users:", adminUsers.length);
-      } else {
-        console.log("⚠️ No admin users found in database");
-      }
-      
-      // 3. Check localStorage for any users not yet in Supabase
-      try {
-        const storedUsers = localStorage.getItem("registered_users");
-        if (storedUsers) {
-          const parsedUsers: User[] = JSON.parse(storedUsers);
-          console.log("📋 Local storage users found:", parsedUsers.length);
-          
-          // Filter out any users that are already in our list
-          const uniqueLocalUsers = parsedUsers.filter(
-            localUser => !allUsers.some(user => user.id === localUser.id)
-          );
-          
-          // Add unique local users to the array
-          uniqueLocalUsers.forEach(user => {
-            allUsers.push({
-              ...user,
-              dateJoined: user.dateJoined || new Date().toISOString()
-            });
-          });
-          
-          console.log("✅ Successfully loaded users from localStorage:", uniqueLocalUsers.length);
-        } else {
-          console.log("⚠️ No users found in localStorage");
-        }
-      } catch (error) {
-        console.error("⚠️ Error parsing local users:", error);
-      }
-      
-      // Set the users and filtered users state
+      // 2. Merge all unique users
+      let allUsers = mergeUniqueUsers([profileUsers, adminUsers, localUsers]);
       console.log("🔢 Total users loaded:", allUsers.length);
       
+      // 3. Add a test user if no users found
       if (allUsers.length === 0) {
-        // If no users found anywhere, add a default test user
         console.log("⚠️ No users found, adding fallback test user");
-        const testUser = {
-          id: "test-user-id",
-          name: "Test User",
-          email: "test@example.com",
-          role: "user",
-          dateJoined: new Date().toISOString()
-        };
+        const testUser = createTestUser();
         allUsers.push(testUser);
-        
-        // Also save to localStorage for persistence
-        try {
-          localStorage.setItem("registered_users", JSON.stringify([testUser]));
-          console.log("💾 Saved test user to localStorage");
-        } catch (err) {
-          console.error("⚠️ Failed to save test user to localStorage:", err);
-        }
+        saveTestUserToLocalStorage(testUser);
       }
       
+      // 4. Update state with loaded users
       setUsers(allUsers);
       setFilteredUsers(allUsers);
       
-      // Notify success if users loaded
+      // 5. Notify success if users loaded
       if (allUsers.length > 0) {
         toast({
           description: `Successfully loaded ${allUsers.length} user(s).`,
@@ -160,13 +65,7 @@ export const useUserManagement = () => {
       });
       
       // Add a test user anyway to ensure UI is not empty
-      const testUser = {
-        id: "test-user-fallback",
-        name: "Test Fallback User",
-        email: "fallback@example.com",
-        role: "user",
-        dateJoined: new Date().toISOString()
-      };
+      const testUser = createTestUser(true);
       setUsers([testUser]);
       setFilteredUsers([testUser]);
       
@@ -182,18 +81,7 @@ export const useUserManagement = () => {
   
   // Filter users based on search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredUsers(users);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = users.filter(
-        user =>
-          user.name?.toLowerCase().includes(query) ||
-          user.email?.toLowerCase().includes(query) ||
-          user.role?.toLowerCase().includes(query)
-      );
-      setFilteredUsers(filtered);
-    }
+    setFilteredUsers(filterUsersByQuery(users, searchQuery));
   }, [searchQuery, users]);
   
   const handleSelectUser = (userId: string) => {
