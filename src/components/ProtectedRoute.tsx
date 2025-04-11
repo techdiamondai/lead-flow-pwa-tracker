@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/toast";
-import { isAdmin } from "@/hooks/auth/utils/roleUtils";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,37 +13,31 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireAdmin = false
 }) => {
-  const { user, isAuthenticated, isLoading, profile } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [isAdminChecking, setIsAdminChecking] = useState<boolean>(requireAdmin);
   const location = useLocation();
   
-  // Check admin status when profile is available
+  // Check admin status when profile is available and admin access is required
   useEffect(() => {
-    if (!requireAdmin) return;
+    if (!requireAdmin || !isAuthenticated) return;
     
-    if (profile && isAuthenticated) {
-      setIsAdminChecking(true);
-      
-      const checkAdminStatus = async () => {
-        try {
-          const adminStatus = await isAdmin(profile);
-          console.log("Admin check result:", adminStatus, "for user:", profile.id);
-          setIsAdminUser(adminStatus);
-        } catch (error) {
-          console.error("Admin check error:", error);
-          setIsAdminUser(false);
-        } finally {
-          setIsAdminChecking(false);
-        }
-      };
-      
-      checkAdminStatus();
-    } else {
-      setIsAdminUser(false);
-      setIsAdminChecking(false);
-    }
-  }, [profile, isAuthenticated, requireAdmin]);
+    const checkAdminStatus = async () => {
+      try {
+        setIsAdminChecking(true);
+        const adminStatus = await isAdmin();
+        console.log("Admin check result in ProtectedRoute:", adminStatus, "for path:", location.pathname);
+        setIsAdminUser(adminStatus);
+      } catch (error) {
+        console.error("Admin check error:", error);
+        setIsAdminUser(false);
+      } finally {
+        setIsAdminChecking(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [isAdmin, isAuthenticated, requireAdmin, location.pathname]);
   
   // Debug logging
   useEffect(() => {
@@ -82,7 +75,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     console.log("Admin access denied, redirecting to dashboard");
     toast({
       title: "Access Denied",
-      description: "You need administrator privileges to access this page",
+      description: "You do not have administrator privileges",
       variant: "destructive"
     });
     return <Navigate to="/dashboard" replace />;

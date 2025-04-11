@@ -11,6 +11,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { user, session, isLoading: authLoading } = useAuthState();
   const { profile, isLoading: profileLoading } = useProfileFetch(user?.id);
 
+  // Create the context value with all auth functionality
   const value = {
     user,
     profile,
@@ -22,9 +23,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     forgotPassword,
     resetPassword,
+    // Fix: Ensure this properly returns a Promise<boolean> and properly checks admin status
     isAdmin: async () => {
-      if (!profile) return false;
-      return await checkIsAdmin(profile);
+      if (!user || !profile) return false;
+      const adminStatus = await checkIsAdmin(profile);
+      console.log("Admin status check result:", adminStatus, "for user:", profile.id);
+      return adminStatus;
     },
   };
 

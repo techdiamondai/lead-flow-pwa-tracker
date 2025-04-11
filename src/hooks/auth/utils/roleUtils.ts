@@ -7,9 +7,14 @@ import { UserProfile, UserRole } from "../types";
  * Now checks against the admin_users table for stronger separation
  */
 export const isAdmin = async (profile: UserProfile | null): Promise<boolean> => {
-  if (!profile?.id) return false;
+  if (!profile?.id) {
+    console.log("No profile or profile ID to check admin status");
+    return false;
+  }
 
   try {
+    console.log("Checking admin status for user ID:", profile.id);
+    
     // Check if user exists in admin_users table using our database function
     const { data, error } = await supabase.rpc('is_admin_user', {
       user_id: profile.id
@@ -20,6 +25,7 @@ export const isAdmin = async (profile: UserProfile | null): Promise<boolean> => 
       return false;
     }
 
+    console.log("Admin check result:", data);
     return !!data;
   } catch (error) {
     console.error("Exception checking admin status:", error);
@@ -52,6 +58,8 @@ export const createAdminUser = async (name: string, email: string, userId: strin
       return true; // User is already an admin, so return success
     }
     
+    console.log("Creating admin user with ID:", userId);
+    
     // Insert the user into the admin_users table
     const { error } = await supabase
       .from('admin_users')
@@ -64,6 +72,7 @@ export const createAdminUser = async (name: string, email: string, userId: strin
       return false;
     }
     
+    console.log("Admin user created successfully");
     return true;
   } catch (error) {
     console.error("Error creating admin user:", error);
