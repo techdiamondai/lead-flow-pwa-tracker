@@ -35,10 +35,11 @@ export const useUserManagementStore = (): [
       if (searchQuery) {
         return updateUserRole(prevFiltered, userId, newRole);
       }
-      // Make sure we're not accessing the latest 'users' state which could cause an infinite loop
-      return filterUsersByQuery(updateUserRole(prevUsers, userId, newRole), searchQuery);
+      // Using the previous state instead of referencing the current users state
+      // which could cause an infinite loop
+      return filterUsersByQuery(updateUserRole(prevFiltered, userId, newRole), searchQuery);
     });
-  }, [searchQuery, users]);
+  }, [searchQuery]);
 
   return [
     { users, filteredUsers, searchQuery, selectedUsers, isLoading, error, isPromoting },
