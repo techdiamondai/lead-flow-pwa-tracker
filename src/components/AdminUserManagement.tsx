@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import { useUserManagement } from "@/hooks/useUserManagement";
+import { useUserManagement } from "@/hooks/userManagement";
 import { UserSearchBar } from "@/components/admin/users/UserSearchBar";
 import { UserTable } from "@/components/admin/users/UserTable";
 import { UserLoadingState } from "@/components/admin/users/UserLoadingState";
