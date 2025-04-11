@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "@/hooks/toast";
 import { AuthProvider } from "@/hooks/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -31,11 +31,14 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: false,
+      staleTime: 10000,
     },
   },
 });
 
 const App = () => {
+  console.log("App rendering");
+  
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
@@ -45,12 +48,14 @@ const App = () => {
               <AuthProvider>
                 <Routes>
                   <Route path="/" element={<MainLayout />}>
+                    {/* Public routes */}
                     <Route index element={<Index />} />
                     <Route path="login" element={<Login />} />
                     <Route path="register" element={<Register />} />
                     <Route path="forgot-password" element={<ForgotPassword />} />
                     <Route path="reset-password" element={<ResetPassword />} />
                     
+                    {/* Protected routes */}
                     <Route path="dashboard" element={
                       <ProtectedRoute>
                         <Dashboard />
@@ -93,6 +98,7 @@ const App = () => {
                       </ProtectedRoute>
                     } />
                     
+                    {/* Catch-all route */}
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>

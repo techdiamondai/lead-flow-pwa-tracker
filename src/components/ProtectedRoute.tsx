@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,6 +15,27 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
   const location = useLocation();
+  
+  useEffect(() => {
+    // Debug information to help diagnose issues
+    console.log("ProtectedRoute - Auth State:", { 
+      isAuthenticated, 
+      isLoading, 
+      isAdmin: isAdmin(),
+      requireAdmin,
+      user: user?.id,
+      path: location.pathname
+    });
+
+    // Show toast when authentication fails to redirect
+    if (!isLoading && !isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access this page",
+        variant: "destructive"
+      });
+    }
+  }, [isAuthenticated, isLoading, isAdmin, requireAdmin, user, location.pathname]);
   
   if (isLoading) {
     // Show loading state while checking authentication
@@ -28,11 +50,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
   
   if (!isAuthenticated) {
+    console.log("Redirecting to login from:", location.pathname);
     // Redirect to login if not authenticated
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   if (requireAdmin && !isAdmin()) {
+    console.log("Admin access denied, redirecting to dashboard");
     // Redirect to dashboard if admin access is required but user is not admin
     return <Navigate to="/dashboard" replace />;
   }
