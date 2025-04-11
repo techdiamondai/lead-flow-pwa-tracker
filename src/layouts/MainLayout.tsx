@@ -4,6 +4,9 @@ import { Outlet } from "react-router-dom";
 import Header from "@/components/Header";
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
+import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/auth";
 
 const DebugPanel = () => {
   const [showDebug, setShowDebug] = React.useState(false);
@@ -51,17 +54,23 @@ const DebugPanel = () => {
 };
 
 const MainLayout: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   console.log("MainLayout rendering");
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1 bg-gray-50">
-        <Outlet />
-      </main>
-      <DebugPanel />
-      <Toaster />
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex flex-col w-full">
+        <Header />
+        <div className="flex flex-1">
+          {isAuthenticated && <AppSidebar />}
+          <SidebarInset className="bg-gray-50">
+            <Outlet />
+          </SidebarInset>
+        </div>
+        <DebugPanel />
+        <Toaster />
+      </div>
+    </SidebarProvider>
   );
 };
 
