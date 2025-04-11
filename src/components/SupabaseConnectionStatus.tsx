@@ -11,7 +11,8 @@ export const SupabaseConnectionStatus: React.FC = () => {
     const checkConnection = async () => {
       try {
         // Use a simple RPC call to test the connection
-        const { data, error } = await supabase.rpc<boolean, { function_name: string }>('get_function_exists', {
+        // Fix: Properly type the rpc call with correct generic parameters
+        const { data, error } = await supabase.rpc('get_function_exists', {
           function_name: 'handle_new_user'
         });
         
