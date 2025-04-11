@@ -43,6 +43,11 @@ export const AdminUserManagement: React.FC = () => {
         variant: "destructive"
       });
     }
+    
+    // Log the user list to help with debugging
+    if (filteredUsers.length > 0) {
+      console.log("Users available:", filteredUsers);
+    }
   }, [filteredUsers, isLoading, error, toast]);
   
   return (

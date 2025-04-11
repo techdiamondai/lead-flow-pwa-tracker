@@ -7,9 +7,15 @@ import {
   fetchAdminUsers, 
   getLocalUsers, 
   createTestUser, 
-  saveTestUserToLocalStorage 
+  saveTestUserToLocalStorage,
+  saveUsersToLocalStorage
 } from "@/services/userDataService";
-import { mergeUniqueUsers, filterUsersByQuery, updateUserRole } from "@/utils/userManagementUtils";
+import { 
+  mergeUniqueUsers, 
+  filterUsersByQuery, 
+  updateUserRole,
+  sanitizeUserData 
+} from "@/utils/userManagementUtils";
 import { createAdminUser } from "@/hooks/auth/utils/roleUtils";
 
 export type { User } from "@/types/user.types";
@@ -31,23 +37,50 @@ export const useUserManagement = () => {
       setError(null);
       
       // 1. Fetch users from different sources
-      const profileUsers = await fetchUserProfiles().catch(() => []);
-      const adminUsers = await fetchAdminUsers().catch(() => []);
+      const profilesPromise = fetchUserProfiles().catch(err => {
+        console.error("Error fetching profiles:", err);
+        return [];
+      });
+      
+      const adminUsersPromise = fetchAdminUsers().catch(err => {
+        console.error("Error fetching admin users:", err);
+        return [];
+      });
+      
+      // Fetch in parallel
+      const [profileUsers, adminUsers] = await Promise.all([
+        profilesPromise,
+        adminUsersPromise
+      ]);
+      
       const localUsers = getLocalUsers();
+      
+      console.log("Data sources loaded:", {
+        profileUsers: profileUsers.length,
+        adminUsers: adminUsers.length,
+        localUsers: localUsers.length
+      });
       
       // 2. Merge all unique users
       let allUsers = mergeUniqueUsers([profileUsers, adminUsers, localUsers]);
-      console.log("🔢 Total users loaded:", allUsers.length);
       
-      // 3. Add a test user if no users found
+      // 3. Sanitize user data
+      allUsers = sanitizeUserData(allUsers);
+      
+      // 4. Add a test user if no users found
       if (allUsers.length === 0) {
         console.log("⚠️ No users found, adding fallback test user");
         const testUser = createTestUser();
         allUsers.push(testUser);
         saveTestUserToLocalStorage(testUser);
+      } else {
+        // Save all users to localStorage for persistence
+        saveUsersToLocalStorage(allUsers);
       }
       
-      // 4. Update state with loaded users
+      console.log("🔢 Total users loaded:", allUsers.length);
+      
+      // 5. Update state with loaded users
       setUsers(allUsers);
       setFilteredUsers(allUsers);
       
@@ -134,6 +167,8 @@ export const useUserManagement = () => {
           continue;
         }
         
+        console.log(`Attempting to promote user: ${user.name} (${user.id})`);
+        
         // Call the createAdminUser function from roleUtils
         const success = await createAdminUser(
           user.name,
@@ -143,16 +178,14 @@ export const useUserManagement = () => {
         
         if (success) {
           successCount++;
+          console.log(`✅ Successfully promoted user: ${user.name}`);
           // Update the user's role in our local state
           setUsers(prevUsers => updateUserRole(prevUsers, userId, 'admin'));
         } else {
           failCount++;
-          console.error(`Failed to promote user: ${user.name}`);
+          console.error(`❌ Failed to promote user: ${user.name}`);
         }
       }
-      
-      // Update filtered users based on the updated users array
-      setFilteredUsers(filterUsersByQuery(users, searchQuery));
       
       // Show appropriate toast notification
       if (successCount > 0) {
