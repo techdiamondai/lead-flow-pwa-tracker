@@ -1,48 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { LeadHistory } from '@/models/Lead';
-import { getUserNameById } from '@/services/userService';
-import { getStageDisplayName } from '@/services/leadService';
+
+import React from "react";
+import { LeadHistory } from "@/models/Lead";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { getStageDisplayName } from "@/services/leadService";
+import { getUserNameById } from "@/services/userService";
 
 interface LeadHistoryEntryProps {
   entry: LeadHistory;
-  formatDate: (dateString: string) => string;
-  isFirst: boolean; // To conditionally render Separator
+  formatDate: (date: string) => string;
+  isFirst?: boolean;
 }
 
-export const LeadHistoryEntry: React.FC<LeadHistoryEntryProps> = ({ entry, formatDate, isFirst }) => {
-  const [userName, setUserName] = useState<string>("");
+export const LeadHistoryEntry: React.FC<LeadHistoryEntryProps> = ({
+  entry,
+  formatDate,
+  isFirst = false,
+}) => {
+  const [userName, setUserName] = React.useState<string>("");
 
-  useEffect(() => {
-    let isMounted = true;
+  React.useEffect(() => {
     if (entry.updated_by) {
-      getUserNameById(entry.updated_by).then(name => {
-        if (isMounted) {
-          setUserName(name);
-        }
-      });
-    } else {
-       setUserName("Unknown User"); // Handle cases where updated_by might be null
+      getUserNameById(entry.updated_by).then(setUserName);
     }
-    return () => { isMounted = false }; // Cleanup function to prevent state update on unmounted component
   }, [entry.updated_by]);
 
   return (
-    <div className="space-y-2">
-      {!isFirst && <Separator />}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2">
+    <div className={isFirst ? "" : "pt-4"}>
+      {!isFirst && <Separator className="mb-4" />}
+      <div className="flex justify-between items-start">
         <div>
-          <Badge variant="outline">{getStageDisplayName(entry.stage)}</Badge>
-          <p className="text-sm text-muted-foreground mt-1">
-            {formatDate(entry.timestamp)} by {userName}
+          <Badge variant="outline" className="mb-2">
+            {getStageDisplayName(entry.stage)}
+          </Badge>
+          <p className="text-sm font-medium">
+            Updated by: {userName || "System"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {formatDate(entry.timestamp)}
           </p>
         </div>
-        {/* If there were other details specific to the entry, they would go here */}
       </div>
-      {entry.details && (
-          <p className="text-sm text-muted-foreground pl-2">{entry.details}</p>
+      {entry.notes && (
+        <div className="mt-2 text-sm">
+          <p>{entry.notes}</p>
+        </div>
       )}
     </div>
   );
-}; 
+};

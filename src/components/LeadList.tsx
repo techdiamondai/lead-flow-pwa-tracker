@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Lead } from "@/models/Lead";
 import { getLeads, getStageDisplayName } from "@/services/leadService";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Eye } from "lucide-react";
 
 export const LeadList: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -96,7 +96,9 @@ export const LeadList: React.FC = () => {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Leads</CardTitle>
+        <CardTitle>
+          {isAdmin() ? "All Leads" : "My Leads"}
+        </CardTitle>
         <Button 
           onClick={() => navigate("/leads/new")}
           size="sm"
@@ -145,6 +147,11 @@ export const LeadList: React.FC = () => {
                   <div className="text-sm text-muted-foreground">
                     {lead.company}
                   </div>
+                  {isAdmin() && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Assigned to: {lead.assigned_to || "Unassigned"}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center mt-2 sm:mt-0">
                   <Badge variant={getStageBadgeVariant(lead.current_stage) as any}>
@@ -153,6 +160,15 @@ export const LeadList: React.FC = () => {
                   <span className="text-xs text-muted-foreground">
                     Updated {formatDate(lead.updated_at)}
                   </span>
+                  {isAdmin() && (
+                    <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/leads/${lead.id}`);
+                    }}>
+                      <Eye className="h-3.5 w-3.5" />
+                      <span className="sr-only">View details</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

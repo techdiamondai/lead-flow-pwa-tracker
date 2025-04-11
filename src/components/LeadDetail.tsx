@@ -11,7 +11,7 @@ import { getLead, getStageDisplayName, deleteLead } from "@/services/leadService
 import { getUserNameById } from "@/services/userService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash } from "lucide-react";
+import { Edit, Trash, ClipboardList, Calendar, User, UserCheck } from "lucide-react";
 import { LeadHistoryEntry } from "./LeadHistoryEntry";
 
 export const LeadDetail = () => {
@@ -162,13 +162,19 @@ export const LeadDetail = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              <span>Lead Information</span>
+              <span className="flex items-center">
+                <ClipboardList className="h-5 w-5 mr-2 text-blue-500" />
+                Lead Information
+              </span>
               <Badge>{getStageDisplayName(lead.current_stage)}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">Contact Details</h3>
+              <h3 className="text-sm font-medium text-muted-foreground flex items-center">
+                <User className="h-4 w-4 mr-1.5" />
+                Contact Details
+              </h3>
               <div className="mt-2 space-y-2">
                 <p>
                   <span className="font-medium">Email:</span>{" "}
@@ -196,7 +202,10 @@ export const LeadDetail = () => {
             </div>
             
             <div>
-              <h3 className="text-sm font-medium text-muted-foreground">Lead Status</h3>
+              <h3 className="text-sm font-medium text-muted-foreground flex items-center">
+                <Calendar className="h-4 w-4 mr-1.5" />
+                Lead Status
+              </h3>
               <div className="mt-2 space-y-2">
                 <p>
                   <span className="font-medium">Created:</span> {formatDate(lead.created_at)}
@@ -210,13 +219,31 @@ export const LeadDetail = () => {
                 <p>
                   <span className="font-medium">Assigned to:</span> {assignedToName}
                 </p>
+                
+                {isAdmin() && (
+                  <div className="mt-4 pt-2 border-t">
+                    <h4 className="text-xs font-semibold text-muted-foreground flex items-center mb-1">
+                      <UserCheck className="h-3.5 w-3.5 mr-1" />
+                      Admin Information
+                    </h4>
+                    <p className="text-xs">
+                      <span className="font-medium">Lead ID:</span> {lead.id}
+                    </p>
+                    <p className="text-xs">
+                      <span className="font-medium">Created by ID:</span> {lead.created_by}
+                    </p>
+                    <p className="text-xs">
+                      <span className="font-medium">Assigned to ID:</span> {lead.assigned_to}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             
             {lead.notes && (
               <div className="md:col-span-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Notes</h3>
-                <p className="mt-2 whitespace-pre-wrap">{lead.notes}</p>
+                <p className="mt-2 whitespace-pre-wrap bg-gray-50 p-3 rounded-md border">{lead.notes}</p>
               </div>
             )}
           </CardContent>
@@ -242,6 +269,14 @@ export const LeadDetail = () => {
               <p className="text-muted-foreground">No history entries found.</p>
             )}
           </CardContent>
+          
+          {isAdmin() && (
+            <CardFooter className="bg-blue-50/50 border-t">
+              <p className="text-xs text-blue-600">
+                As an admin, you have full access to all lead details and history.
+              </p>
+            </CardFooter>
+          )}
         </Card>
       </div>
       
