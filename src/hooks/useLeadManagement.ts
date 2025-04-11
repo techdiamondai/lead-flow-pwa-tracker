@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Lead } from "@/models/Lead";
 import { getLeads } from "@/services/leadService";
+import { useAuth } from "@/hooks/auth";
 
 export const useLeadManagement = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -9,6 +10,7 @@ export const useLeadManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isAdmin } = useAuth();
   
   const fetchLeads = async () => {
     try {

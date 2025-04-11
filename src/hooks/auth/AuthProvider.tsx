@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 import { useProfileFetch } from "./useProfileFetch";
 import { useAuthState } from "./utils/authState";
@@ -10,6 +10,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Use the custom hooks to manage auth state and fetch profile
   const { user, session, isLoading: authLoading } = useAuthState();
   const { profile, isLoading: profileLoading } = useProfileFetch(user?.id);
+  const [cachedAdminStatus, setCachedAdminStatus] = useState<boolean | null>(null);
+
+  // Check and cache admin status when profile changes
+  const checkAdminStatus = useCallback(async () => {
+    if (!user || !profile) {
+      setCachedAdminStatus(false);
+      return;
+    }
+    
+    try {
+      const adminStatus = await checkIsAdmin(profile);
+      console.log("Admin status check in AuthProvider:", adminStatus, "for user:", profile.id);
+      setCachedAdminStatus(adminStatus);
+      return adminStatus;
+    } catch (error) {
+      console.error("Error checking admin status in AuthProvider:", error);
+      setCachedAdminStatus(false);
+      return false;
+    }
+  }, [user, profile]);
+
+  // Update admin status when profile changes
+  useEffect(() => {
+    if (profile) {
+      checkAdminStatus();
+    }
+  }, [profile, checkAdminStatus]);
 
   // Create the context value with all auth functionality
   const value = {
@@ -23,17 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     forgotPassword,
     resetPassword,
-    // More reliable admin check that caches the result
+    // Use cached admin status when available, otherwise check directly
     isAdmin: async () => {
-      if (!user || !profile) return false;
-      try {
-        const adminStatus = await checkIsAdmin(profile);
-        console.log("Admin status check result in AuthProvider:", adminStatus, "for user:", profile.id);
-        return adminStatus;
-      } catch (error) {
-        console.error("Error checking admin status in AuthProvider:", error);
-        return false;
+      if (cachedAdminStatus !== null) {
+        return cachedAdminStatus;
       }
+      return await checkAdminStatus();
     },
   };
 

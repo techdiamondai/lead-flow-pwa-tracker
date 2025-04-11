@@ -53,6 +53,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     checkAdminStatus();
   }, [isAdmin, isAuthenticated, requireAdmin, location.pathname, toast]);
   
+  // Debug logging
+  useEffect(() => {
+    console.log("ProtectedRoute - Auth State:", { 
+      isAuthenticated, 
+      isLoading, 
+      isAdminUser,
+      isAdminChecking,
+      requireAdmin,
+      userId: user?.id,
+      path: location.pathname
+    });
+  }, [isAuthenticated, isLoading, isAdminUser, requireAdmin, user, location.pathname, isAdminChecking]);
+  
   // Show loading state while checking authentication or admin status
   if (isLoading || isAdminChecking) {
     return (

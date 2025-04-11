@@ -50,7 +50,7 @@ export const createAdminUser = async (name: string, email: string, userId: strin
     
     // Use the RPC function to create admin user - this bypasses RLS
     const { data, error } = await supabase.rpc(
-      'create_admin_user' as any, 
+      'create_admin_user', 
       {
         admin_id: userId,
         admin_name: name,
