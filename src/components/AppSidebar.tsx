@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/auth";
 import {
@@ -45,59 +45,61 @@ export const AppSidebar = () => {
   const [adminStatus, setAdminStatus] = React.useState(false);
 
   // Check if user is admin
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAdminStatus = async () => {
       if (isAuthenticated) {
-        const admin = await isAdmin();
-        setAdminStatus(admin);
+        try {
+          const admin = await isAdmin();
+          console.log("Admin status in sidebar:", admin);
+          setAdminStatus(admin);
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          setAdminStatus(false);
+        }
       } else {
         setAdminStatus(false);
       }
     };
+    
     checkAdminStatus();
   }, [isAuthenticated, isAdmin]);
 
   // Define navigation items based on auth status and admin privileges
-  const getNavItems = () => {
-    const items: NavItem[] = [
-      {
-        title: "Dashboard",
-        path: "/dashboard",
-        icon: LayoutDashboard,
-        authRequired: true,
-      },
-      {
-        title: "Leads",
-        path: "/leads",
-        icon: UserPlus,
-        authRequired: true,
-      },
-    ];
+  const navItems: NavItem[] = [
+    {
+      title: "Dashboard",
+      path: "/dashboard",
+      icon: LayoutDashboard,
+      authRequired: true,
+    },
+    {
+      title: "Leads",
+      path: "/leads",
+      icon: UserPlus,
+      authRequired: true,
+    },
+  ];
 
-    // Only add admin items if user is an admin
-    if (adminStatus) {
-      items.push(
-        {
-          title: "Admin Panel",
-          path: "/admin",
-          icon: Shield,
-          authRequired: true,
-          adminRequired: true,
-        },
-        {
-          title: "User Management",
-          path: "/admin/users",
-          icon: Users,
-          authRequired: true,
-          adminRequired: true,
-        }
-      );
+  // Add admin items if user is an admin
+  const adminItems: NavItem[] = [
+    {
+      title: "Admin Panel",
+      path: "/admin",
+      icon: Shield,
+      authRequired: true,
+      adminRequired: true,
+    },
+    {
+      title: "User Management",
+      path: "/admin/users",
+      icon: Users,
+      authRequired: true,
+      adminRequired: true,
     }
+  ];
 
-    return items;
-  };
-
-  const navItems = getNavItems();
+  // Filter items based on admin status
+  const displayItems = [...navItems, ...(adminStatus ? adminItems : [])];
   
   // Helper to determine if a menu item is active
   const isActive = (path: string) => location.pathname === path;
@@ -123,7 +125,7 @@ export const AppSidebar = () => {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {displayItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     isActive={isActive(item.path)}
@@ -146,21 +148,27 @@ export const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Account">
-                  <User className="h-4 w-4" />
-                  <span>Account</span>
+                <SidebarMenuButton tooltip="Account" asChild>
+                  <Link to="/account">
+                    <User className="h-4 w-4" />
+                    <span>Account</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                <SidebarMenuButton tooltip="Settings" asChild>
+                  <Link to="/settings">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Help">
-                  <HelpCircle className="h-4 w-4" />
-                  <span>Help</span>
+                <SidebarMenuButton tooltip="Help" asChild>
+                  <Link to="/help">
+                    <HelpCircle className="h-4 w-4" />
+                    <span>Help</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

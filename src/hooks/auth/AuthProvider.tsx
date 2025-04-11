@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin: async () => {
       if (!user || !profile) return false;
       const adminStatus = await checkIsAdmin(profile);
-      console.log("Admin status check result:", adminStatus, "for user:", profile.id);
+      console.log("Admin status check result in AuthProvider:", adminStatus, "for user:", profile.id);
       return adminStatus;
     },
   };

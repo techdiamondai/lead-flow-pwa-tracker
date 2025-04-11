@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,6 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [isAdminChecking, setIsAdminChecking] = useState<boolean>(requireAdmin);
   const location = useLocation();
+  const { toast } = useToast();
   
   // Check admin status when profile is available and admin access is required
   useEffect(() => {
@@ -28,16 +29,29 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         const adminStatus = await isAdmin();
         console.log("Admin check result in ProtectedRoute:", adminStatus, "for path:", location.pathname);
         setIsAdminUser(adminStatus);
+        
+        if (!adminStatus && requireAdmin) {
+          toast({
+            title: "Access Denied",
+            description: "You do not have administrator privileges",
+            variant: "destructive"
+          });
+        }
       } catch (error) {
         console.error("Admin check error:", error);
         setIsAdminUser(false);
+        toast({
+          title: "Authentication Error",
+          description: "Failed to verify admin permissions",
+          variant: "destructive"
+        });
       } finally {
         setIsAdminChecking(false);
       }
     };
     
     checkAdminStatus();
-  }, [isAdmin, isAuthenticated, requireAdmin, location.pathname]);
+  }, [isAdmin, isAuthenticated, requireAdmin, location.pathname, toast]);
   
   // Debug logging
   useEffect(() => {
@@ -73,11 +87,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check admin access if required
   if (requireAdmin && !isAdminUser) {
     console.log("Admin access denied, redirecting to dashboard");
-    toast({
-      title: "Access Denied",
-      description: "You do not have administrator privileges",
-      variant: "destructive"
-    });
     return <Navigate to="/dashboard" replace />;
   }
   

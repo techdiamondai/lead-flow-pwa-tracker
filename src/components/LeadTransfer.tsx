@@ -43,8 +43,14 @@ export const LeadTransfer: React.FC<LeadTransferProps> = ({
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (currentUser) {
-        const adminStatus = await isAdmin();
-        setIsAdminUser(adminStatus);
+        try {
+          const adminStatus = await isAdmin();
+          console.log("Admin status check in LeadTransfer:", adminStatus);
+          setIsAdminUser(adminStatus);
+        } catch (error) {
+          console.error("Error checking admin status in LeadTransfer:", error);
+          setIsAdminUser(false);
+        }
       }
     };
     
@@ -116,14 +122,10 @@ export const LeadTransfer: React.FC<LeadTransferProps> = ({
     }
   };
   
-  // Only admins can transfer leads
-  if (!isAdminUser) return null;
-  
-  // Don't show transfer option if no leads are selected
-  if (selectedLeads.length === 0) return null;
-  
-  // Don't show transfer option if no other users are available
-  if (availableUsers.length === 0) return null;
+  // Only admins can transfer leads and only show if leads are selected
+  if (!isAdminUser || selectedLeads.length === 0 || availableUsers.length === 0) {
+    return null;
+  }
   
   return (
     <Dialog>

@@ -49,7 +49,6 @@ export const createAdminUser = async (name: string, email: string, userId: strin
     console.log("Creating admin user with ID:", userId);
     
     // Use the RPC function to create admin user - this bypasses RLS
-    // Using a type assertion to work around the TypeScript limitation
     const { data, error } = await supabase.rpc(
       'create_admin_user' as any, 
       {
