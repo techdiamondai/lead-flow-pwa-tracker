@@ -18,6 +18,7 @@ export const AdminUserManagement: React.FC = () => {
     setSearchQuery,
     selectedUsers,
     isLoading,
+    isPromoting,
     error,
     handleSelectUser,
     handleSelectAll,
@@ -61,6 +62,7 @@ export const AdminUserManagement: React.FC = () => {
           onSearchChange={setSearchQuery}
           selectedUsersCount={selectedUsers.length}
           onPromoteUsers={promoteSelectedToAdmin}
+          isPromoting={isPromoting}
         />
 
         {isLoading ? (

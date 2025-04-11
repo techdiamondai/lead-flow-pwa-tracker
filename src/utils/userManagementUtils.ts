@@ -36,3 +36,14 @@ export const filterUsersByQuery = (users: User[], query: string): User[] => {
       user.role?.toLowerCase().includes(normalizedQuery)
   );
 };
+
+/**
+ * Updates a user's role in the users array
+ */
+export const updateUserRole = (users: User[], userId: string, newRole: string): User[] => {
+  return users.map(user => 
+    user.id === userId 
+      ? { ...user, role: newRole } 
+      : user
+  );
+};

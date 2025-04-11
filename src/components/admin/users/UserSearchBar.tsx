@@ -4,19 +4,22 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface UserSearchBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedUsersCount: number;
   onPromoteUsers: () => void;
+  isPromoting?: boolean;
 }
 
 export const UserSearchBar: React.FC<UserSearchBarProps> = ({
   searchQuery,
   onSearchChange,
   selectedUsersCount,
-  onPromoteUsers
+  onPromoteUsers,
+  isPromoting = false
 }) => {
   return (
     <div className="mb-4 flex items-center justify-between gap-4">
@@ -37,9 +40,14 @@ export const UserSearchBar: React.FC<UserSearchBarProps> = ({
             variant="outline"
             size="sm"
             onClick={onPromoteUsers}
+            disabled={isPromoting}
           >
-            <UserCheck className="mr-2 h-4 w-4" />
-            Promote to Admin
+            {isPromoting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <UserCheck className="mr-2 h-4 w-4" />
+            )}
+            {isPromoting ? "Promoting..." : "Promote to Admin"}
           </Button>
         </div>
       )}
