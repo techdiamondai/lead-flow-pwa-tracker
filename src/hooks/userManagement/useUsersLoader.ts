@@ -16,7 +16,8 @@ import {
 import { User } from "@/types/user.types";
 
 /**
- * Hook for loading user data from different sources
+ * Hook for loading user data from different sources with improved
+ * loading state management to prevent race conditions
  */
 export const useUsersLoader = (
   setUsers: (users: User[]) => void,
@@ -25,18 +26,23 @@ export const useUsersLoader = (
   setError: (error: string | null) => void
 ) => {
   const { toast } = useToast();
-  const isLoadingRef = useRef<boolean>(false);
+  const loadingRef = useRef<boolean>(false);
+  const loadIdRef = useRef<number>(0);
 
   const loadUsers = useCallback(async (highlightUserId?: string | null) => {
     // Prevent multiple simultaneous loading attempts
-    if (isLoadingRef.current) {
+    if (loadingRef.current) {
       console.log("Already loading users, skipping duplicate request");
       return;
     }
     
     try {
-      isLoadingRef.current = true;
-      console.log("🔄 Starting to load users...");
+      // Set loading flag and generate a unique ID for this load operation
+      loadingRef.current = true;
+      const currentLoadId = Date.now();
+      loadIdRef.current = currentLoadId;
+      
+      console.log("🔄 Starting to load users...", { loadId: currentLoadId });
       setIsLoading(true);
       setError(null);
       
@@ -44,21 +50,39 @@ export const useUsersLoader = (
       const localUsers = getLocalUsers();
       if (localUsers.length > 0) {
         console.log("Found local users, displaying immediately:", localUsers.length);
+        
+        // Check if this is still the most recent load operation
+        if (loadIdRef.current !== currentLoadId) {
+          console.log("Load operation superseded by newer request, aborting");
+          return;
+        }
+        
         setUsers(localUsers);
         setFilteredUsers(localUsers);
       }
       
       // 2. Then fetch from remote sources in parallel
-      const [profileUsers, adminUsers] = await Promise.all([
-        fetchUserProfiles().catch(err => {
-          console.error("Error fetching profiles:", err);
-          return [];
-        }),
-        fetchAdminUsers().catch(err => {
-          console.error("Error fetching admin users:", err);
-          return [];
-        })
+      const results = await Promise.allSettled([
+        fetchUserProfiles(),
+        fetchAdminUsers()
       ]);
+      
+      // Check if this is still the most recent load operation
+      if (loadIdRef.current !== currentLoadId) {
+        console.log("Load operation superseded by newer request, aborting");
+        return;
+      }
+      
+      const profileUsers = results[0].status === 'fulfilled' ? results[0].value : [];
+      const adminUsers = results[1].status === 'fulfilled' ? results[1].value : [];
+      
+      if (results[0].status === 'rejected') {
+        console.error("Error fetching profiles:", results[0].reason);
+      }
+      
+      if (results[1].status === 'rejected') {
+        console.error("Error fetching admin users:", results[1].reason);
+      }
       
       console.log("Data sources loaded:", {
         profileUsers: profileUsers.length,
@@ -84,6 +108,12 @@ export const useUsersLoader = (
       }
       
       console.log("🔢 Total users loaded:", allUsers.length);
+      
+      // Check once more if this is still the most recent load operation
+      if (loadIdRef.current !== currentLoadId) {
+        console.log("Load operation superseded by newer request, aborting");
+        return;
+      }
       
       // 6. Update state with loaded users - do this as the last operation
       setUsers(allUsers);
@@ -111,9 +141,9 @@ export const useUsersLoader = (
     } finally {
       setIsLoading(false);
       
-      // Reset loading status with a slight delay to prevent race conditions
+      // Reset loading status after a short delay to prevent race conditions
       setTimeout(() => {
-        isLoadingRef.current = false;
+        loadingRef.current = false;
       }, 500);
     }
   }, [setUsers, setFilteredUsers, setIsLoading, setError, toast]);

@@ -1,10 +1,11 @@
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { User } from "@/types/user.types";
 import { UserManagementState } from "./types";
 
 /**
- * Creates and manages the state for user management
+ * Creates and manages the state for user management with simplified state updates
+ * to prevent circular dependencies and render loops
  */
 export const useUserManagementStore = (): [
   UserManagementState,
@@ -19,32 +20,67 @@ export const useUserManagementStore = (): [
     updateUserRole: (userId: string, role: string) => void;
   }
 ] => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isPromoting, setIsPromoting] = useState(false);
+  const [state, setState] = useState<UserManagementState>({
+    users: [],
+    filteredUsers: [],
+    searchQuery: "",
+    selectedUsers: [],
+    isLoading: true,
+    error: null,
+    isPromoting: false
+  });
 
-  // Update user role without creating circular dependencies
-  const updateUserRoleInState = useCallback((userId: string, newRole: string) => {
-    setUsers((currentUsers) => {
-      return currentUsers.map(user => 
+  // Simplified state setters that don't depend on previous state
+  const setUsers = (users: User[]) => {
+    setState(prev => ({ ...prev, users }));
+  };
+
+  const setFilteredUsers = (filteredUsers: User[]) => {
+    setState(prev => ({ ...prev, filteredUsers }));
+  };
+
+  const setSearchQuery = (searchQuery: string) => {
+    setState(prev => ({ ...prev, searchQuery }));
+  };
+
+  const setSelectedUsers = (selectedUsers: string[]) => {
+    setState(prev => ({ ...prev, selectedUsers }));
+  };
+
+  const setIsLoading = (isLoading: boolean) => {
+    setState(prev => ({ ...prev, isLoading }));
+  };
+
+  const setError = (error: string | null) => {
+    setState(prev => ({ ...prev, error }));
+  };
+
+  const setIsPromoting = (isPromoting: boolean) => {
+    setState(prev => ({ ...prev, isPromoting }));
+  };
+
+  // Update user role with a direct object update to prevent circular dependencies
+  const updateUserRole = (userId: string, newRole: string) => {
+    setState(prev => {
+      // Create copies of the arrays to avoid mutation
+      const updatedUsers = prev.users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       );
-    });
-    
-    // Update filtered users separately to avoid circular references
-    setFilteredUsers((currentFiltered) => {
-      return currentFiltered.map(user => 
+      
+      const updatedFilteredUsers = prev.filteredUsers.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       );
+      
+      return {
+        ...prev,
+        users: updatedUsers,
+        filteredUsers: updatedFilteredUsers
+      };
     });
-  }, []);
+  };
 
   return [
-    { users, filteredUsers, searchQuery, selectedUsers, isLoading, error, isPromoting },
+    state,
     { 
       setUsers, 
       setFilteredUsers, 
@@ -53,7 +89,7 @@ export const useUserManagementStore = (): [
       setIsLoading, 
       setError, 
       setIsPromoting,
-      updateUserRole: updateUserRoleInState
+      updateUserRole
     }
   ];
 };

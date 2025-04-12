@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useCallback } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,11 @@ export const UserSearchBar: React.FC<UserSearchBarProps> = ({
   onPromoteUsers,
   isPromoting = false
 }) => {
+  // Use a callback to handle search input changes
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  }, [onSearchChange]);
+
   return (
     <div className="mb-4 flex items-center justify-between gap-4">
       <div className="relative flex-1">
@@ -30,7 +35,7 @@ export const UserSearchBar: React.FC<UserSearchBarProps> = ({
           placeholder="Search users..."
           className="pl-8"
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
       
