@@ -41,34 +41,55 @@ const UserManagement: React.FC = () => {
 
   console.log("UserManagement Page Rendering", { 
     highlightUserId,
-    usersLoaded: users.length,
+    usersLoaded: users?.length || 0,
     isLoading
   });
 
   // Load users and check admin status
   useEffect(() => {
+    let isMounted = true;
     console.log("UserManagement useEffect running");
     
     const checkAccess = async () => {
-      console.log("Checking admin access");
-      const adminStatus = await isAdmin();
-      console.log("Admin status:", adminStatus);
+      if (!isMounted) return;
       
-      if (!adminStatus) {
-        toast({
-          title: "Access Denied",
-          description: "You do not have permission to view user management.",
-          variant: "destructive"
-        });
-        navigate("/dashboard");
-        return;
-      }
+      try {
+        console.log("Checking admin access");
+        const adminStatus = await isAdmin();
+        console.log("Admin status:", adminStatus);
+        
+        if (!adminStatus) {
+          toast({
+            title: "Access Denied",
+            description: "You do not have permission to view user management.",
+            variant: "destructive"
+          });
+          navigate("/dashboard");
+          return;
+        }
 
-      console.log("Loading users with highlight:", highlightUserId);
-      loadUsers(highlightUserId);
+        // Only proceed if component is still mounted
+        if (isMounted) {
+          console.log("Loading users with highlight:", highlightUserId);
+          loadUsers(highlightUserId);
+        }
+      } catch (error) {
+        console.error("Error in UserManagement effect:", error);
+        if (isMounted) {
+          toast({
+            title: "Error",
+            description: "Failed to check permissions or load users.",
+            variant: "destructive"
+          });
+        }
+      }
     };
     
     checkAccess();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [isAdmin, navigate, toast, highlightUserId, loadUsers]);
 
   return (

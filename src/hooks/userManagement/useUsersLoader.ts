@@ -27,7 +27,7 @@ export const useUsersLoader = (
   const { toast } = useToast();
   const isLoadingRef = useRef<boolean>(false);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (highlightUserId?: string | null) => {
     // Prevent multiple simultaneous loading attempts
     if (isLoadingRef.current) {
       console.log("Already loading users, skipping duplicate request");
@@ -40,24 +40,25 @@ export const useUsersLoader = (
       setIsLoading(true);
       setError(null);
       
-      // 1. Fetch users from different sources
-      const profilesPromise = fetchUserProfiles().catch(err => {
-        console.error("Error fetching profiles:", err);
-        return [];
-      });
-      
-      const adminUsersPromise = fetchAdminUsers().catch(err => {
-        console.error("Error fetching admin users:", err);
-        return [];
-      });
-      
-      // Fetch in parallel
-      const [profileUsers, adminUsers] = await Promise.all([
-        profilesPromise,
-        adminUsersPromise
-      ]);
-      
+      // 1. First try to get from localStorage for immediate display
       const localUsers = getLocalUsers();
+      if (localUsers.length > 0) {
+        console.log("Found local users, displaying immediately:", localUsers.length);
+        setUsers(localUsers);
+        setFilteredUsers(localUsers);
+      }
+      
+      // 2. Then fetch from remote sources in parallel
+      const [profileUsers, adminUsers] = await Promise.all([
+        fetchUserProfiles().catch(err => {
+          console.error("Error fetching profiles:", err);
+          return [];
+        }),
+        fetchAdminUsers().catch(err => {
+          console.error("Error fetching admin users:", err);
+          return [];
+        })
+      ]);
       
       console.log("Data sources loaded:", {
         profileUsers: profileUsers.length,
@@ -65,13 +66,13 @@ export const useUsersLoader = (
         localUsers: localUsers.length
       });
       
-      // 2. Merge all unique users
+      // 3. Merge all unique users
       let allUsers = mergeUniqueUsers([profileUsers, adminUsers, localUsers]);
       
-      // 3. Sanitize user data
+      // 4. Sanitize user data
       allUsers = sanitizeUserData(allUsers);
       
-      // 4. Add a test user if no users found
+      // 5. Add a test user if no users found
       if (allUsers.length === 0) {
         console.log("⚠️ No users found, adding fallback test user");
         const testUser = createTestUser();
@@ -84,16 +85,14 @@ export const useUsersLoader = (
       
       console.log("🔢 Total users loaded:", allUsers.length);
       
-      // 5. Update state with loaded users - do this as the last operation
+      // 6. Update state with loaded users - do this as the last operation
       setUsers(allUsers);
       setFilteredUsers(allUsers);
       
-      // 5. Notify success if users loaded
-      if (allUsers.length > 0) {
-        toast({
-          description: `Successfully loaded ${allUsers.length} user(s).`,
-        });
-      }
+      // 7. Notify success if users loaded
+      toast({
+        description: `Successfully loaded ${allUsers.length} user(s).`,
+      });
       
     } catch (error: any) {
       console.error("❌ Error in loadUsers:", error);

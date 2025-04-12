@@ -1,9 +1,6 @@
-
 import { useEffect, useRef } from "react";
-import { User } from "@/types/user.types";
 import { useUserManagementStore } from "./userManagementStore";
 import { useUsersLoader } from "./useUsersLoader";
-import { useUserSearchFilter } from "./useUserSearchFilter";
 import { createUserSelectionHandlers } from "./userSelectionHandlers";
 import { useUserPromotion } from "./useUserPromotion";
 import { UserManagementHook } from "./types";
@@ -61,58 +58,42 @@ export const useUserManagement = (): UserManagementHook => {
   
   // Track if initial load has happened and component mounted status
   const initialLoadRef = useRef<boolean>(false);
-  const isMountedRef = useRef<boolean>(false);
+  const isMountedRef = useRef<boolean>(true);
   
-  // Handle search filtering - IMPORTANT: Only apply filter when users change
-  // This avoids a circular dependency where filter triggers render which triggers filter
+  // Apply search filter when users or query changes
   useEffect(() => {
-    if (isMountedRef.current && users.length > 0) {
-      // Apply the current search filter to users whenever users change
-      const filteredResults = searchQuery ? 
-        filterUsersByQuery(users, searchQuery) : 
-        users;
-      setFilteredUsers(filteredResults);
-    }
-  }, [users, searchQuery, setFilteredUsers]);
-  
-  // Import filterUsersByQuery directly for this effect
-  const filterUsersByQuery = (users: User[], query: string): User[] => {
-    if (!users || !Array.isArray(users)) {
-      return [];
+    if (!isMountedRef.current || users.length === 0) return;
+    
+    // If no search query, just set filtered users to all users
+    if (!searchQuery || searchQuery.trim() === "") {
+      setFilteredUsers(users);
+      return;
     }
     
-    if (!query || query.trim() === "") {
-      return users;
-    }
-    
-    const normalizedQuery = query.toLowerCase();
-    return users.filter(
+    // Otherwise apply the filter
+    const normalizedQuery = searchQuery.toLowerCase();
+    const filtered = users.filter(
       user =>
         (user.name && user.name.toLowerCase().includes(normalizedQuery)) ||
         (user.email && user.email.toLowerCase().includes(normalizedQuery)) ||
         (user.role && user.role.toLowerCase().includes(normalizedQuery))
     );
-  };
+    
+    setFilteredUsers(filtered);
+  }, [users, searchQuery, setFilteredUsers]);
   
-  // Load users on component mount but only once
+  // Load users only once on mount
   useEffect(() => {
     isMountedRef.current = true;
     
+    // Initial load only once
     if (!initialLoadRef.current) {
       console.log("Initial user load triggered");
       initialLoadRef.current = true;
-      
-      // Initial load with a small delay to ensure component is fully mounted
-      const loadTimeout = setTimeout(() => {
-        loadUsers();
-      }, 100);
-      
-      return () => {
-        clearTimeout(loadTimeout);
-        isMountedRef.current = false;
-      };
+      loadUsers();
     }
     
+    // Cleanup
     return () => {
       isMountedRef.current = false;
     };

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
@@ -8,7 +8,6 @@ import { UserSearchBar } from "@/components/admin/users/UserSearchBar";
 import { UserTable } from "@/components/admin/users/UserTable";
 import { UserLoadingState } from "@/components/admin/users/UserLoadingState";
 import { UserEmptyState } from "@/components/admin/users/UserEmptyState";
-import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export const AdminUserManagement: React.FC = () => {
@@ -30,7 +29,7 @@ export const AdminUserManagement: React.FC = () => {
   
   useEffect(() => {
     console.log("AdminUserManagement rendered", {
-      usersLoaded: filteredUsers.length,
+      usersLoaded: filteredUsers?.length || 0,
       isLoading,
       error
     });
@@ -42,11 +41,6 @@ export const AdminUserManagement: React.FC = () => {
         description: error,
         variant: "destructive"
       });
-    }
-    
-    // Log the user list to help with debugging
-    if (filteredUsers.length > 0) {
-      console.log("Users available:", filteredUsers);
     }
   }, [filteredUsers, isLoading, error, toast]);
   

@@ -2,7 +2,6 @@
 import { useState, useCallback } from "react";
 import { User } from "@/types/user.types";
 import { UserManagementState } from "./types";
-import { filterUsersByQuery, updateUserRole } from "@/utils/userManagementUtils";
 
 /**
  * Creates and manages the state for user management
@@ -28,16 +27,19 @@ export const useUserManagementStore = (): [
   const [error, setError] = useState<string | null>(null);
   const [isPromoting, setIsPromoting] = useState(false);
 
-  // Completely rewritten to avoid any circular logic
+  // Update user role without creating circular dependencies
   const updateUserRoleInState = useCallback((userId: string, newRole: string) => {
     setUsers((currentUsers) => {
-      const updatedUsers = updateUserRole(currentUsers, userId, newRole);
-      return updatedUsers;
+      return currentUsers.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      );
     });
     
-    // Update filtered users separately without referencing users state
+    // Update filtered users separately to avoid circular references
     setFilteredUsers((currentFiltered) => {
-      return updateUserRole(currentFiltered, userId, newRole);
+      return currentFiltered.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      );
     });
   }, []);
 
