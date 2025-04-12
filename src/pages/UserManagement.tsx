@@ -39,10 +39,20 @@ const UserManagement: React.FC = () => {
   const query = useQuery();
   const highlightUserId = query.get("highlight");
 
+  console.log("UserManagement Page Rendering", { 
+    highlightUserId,
+    usersLoaded: users.length,
+    isLoading
+  });
+
   // Load users and check admin status
   useEffect(() => {
+    console.log("UserManagement useEffect running");
+    
     const checkAccess = async () => {
+      console.log("Checking admin access");
       const adminStatus = await isAdmin();
+      console.log("Admin status:", adminStatus);
       
       if (!adminStatus) {
         toast({
@@ -54,6 +64,7 @@ const UserManagement: React.FC = () => {
         return;
       }
 
+      console.log("Loading users with highlight:", highlightUserId);
       loadUsers(highlightUserId);
     };
     
