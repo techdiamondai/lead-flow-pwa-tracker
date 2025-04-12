@@ -13,8 +13,17 @@ export const useUserSearchFilter = (
 ) => {
   // Filter users based on search query
   useEffect(() => {
-    if (searchQuery === undefined) return; // Guard against undefined searchQuery
+    if (!users || !Array.isArray(users)) {
+      console.log("Invalid users array in useUserSearchFilter");
+      return;
+    }
     
+    if (searchQuery === undefined) {
+      console.log("Search query is undefined, skipping filter");
+      return;
+    }
+    
+    console.log(`Filtering ${users.length} users with query: "${searchQuery}"`);
     const filteredResults = filterUsersByQuery(users, searchQuery);
     setFilteredUsers(filteredResults);
   }, [searchQuery, users, setFilteredUsers]);

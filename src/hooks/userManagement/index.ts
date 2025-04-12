@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { User } from "@/types/user.types";
 import { useUserManagementStore } from "./userManagementStore";
 import { useUsersLoader } from "./useUsersLoader";
@@ -62,9 +62,16 @@ export const useUserManagement = (): UserManagementHook => {
     loadUsers
   );
   
-  // Load users on component mount
+  // Use ref to track if initial load has happened
+  const initialLoadRef = useRef<boolean>(false);
+  
+  // Load users on component mount but only once
   useEffect(() => {
-    loadUsers();
+    if (!initialLoadRef.current) {
+      console.log("Initial user load triggered");
+      initialLoadRef.current = true;
+      loadUsers();
+    }
   }, [loadUsers]);
   
   return {

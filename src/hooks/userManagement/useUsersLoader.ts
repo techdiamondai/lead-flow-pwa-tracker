@@ -27,7 +27,12 @@ export const useUsersLoader = (
   const { toast } = useToast();
 
   const loadUsers = useCallback(async () => {
+    // Prevent multiple simultaneous loading attempts
+    let isLoadingLocal = false;
+    if (isLoadingLocal) return;
+    
     try {
+      isLoadingLocal = true;
       console.log("🔄 Starting to load users...");
       setIsLoading(true);
       setError(null);
@@ -102,6 +107,7 @@ export const useUsersLoader = (
       setFilteredUsers([testUser]);
       
     } finally {
+      isLoadingLocal = false;
       setIsLoading(false);
     }
   }, [setUsers, setFilteredUsers, setIsLoading, setError, toast]);

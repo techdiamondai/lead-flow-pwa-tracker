@@ -29,15 +29,14 @@ export const useUserManagementStore = (): [
   const [isPromoting, setIsPromoting] = useState(false);
 
   const updateUserRoleInState = useCallback((userId: string, newRole: string) => {
-    setUsers(prevUsers => updateUserRole(prevUsers, userId, newRole));
-    setFilteredUsers(prevFiltered => {
+    setUsers((currentUsers) => updateUserRole(currentUsers, userId, newRole));
+    setFilteredUsers((currentFiltered) => {
       // If search is active, update the filtered view too
       if (searchQuery) {
-        return updateUserRole(prevFiltered, userId, newRole);
+        return updateUserRole(currentFiltered, userId, newRole);
       }
-      // Using the previous state instead of referencing the current users state
-      // which could cause an infinite loop
-      return filterUsersByQuery(updateUserRole(prevFiltered, userId, newRole), searchQuery);
+      // Return updated state based on the current filtered users
+      return updateUserRole(currentFiltered, userId, newRole);
     });
   }, [searchQuery]);
 
