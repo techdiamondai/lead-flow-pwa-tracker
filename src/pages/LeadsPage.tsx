@@ -1,6 +1,7 @@
 
 import React from "react";
 import { LeadList } from "@/components/LeadList";
+import { SupabaseConnectionStatus } from "@/components/SupabaseConnectionStatus";
 
 const LeadsPage: React.FC = () => {
   return (
@@ -11,6 +12,8 @@ const LeadsPage: React.FC = () => {
           View and manage all your leads
         </p>
       </div>
+      
+      <SupabaseConnectionStatus />
       
       <LeadList />
     </div>

@@ -10,13 +10,30 @@ export const useLeadManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const { user, isAdmin } = useAuth();
+  
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const adminStatus = await isAdmin();
+        console.log("Admin check in useLeadManagement:", adminStatus);
+        setIsAdminUser(adminStatus);
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user, isAdmin]);
   
   const fetchLeads = async () => {
     try {
       setIsLoading(true);
-      // Always get all leads in the admin management component
-      console.log("Fetching all leads for admin management");
+      console.log("Fetching leads, admin status:", isAdminUser);
       const allLeads = await getLeads();
       
       // Sort by most recent update
@@ -32,7 +49,7 @@ export const useLeadManagement = () => {
   
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [isAdminUser]); // Re-fetch when admin status changes
   
   useEffect(() => {
     // Filter leads based on search query
@@ -93,6 +110,7 @@ export const useLeadManagement = () => {
     selectedLeads,
     setSelectedLeads,
     isLoading,
+    isAdminUser,
     fetchLeads,
     handleSelectLead,
     handleSelectAll,
