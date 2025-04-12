@@ -10,7 +10,7 @@ export const useLeadManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   
   const fetchLeads = async () => {
     try {

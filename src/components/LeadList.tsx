@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Lead } from "@/models/Lead";
 import { getLeads, getStageDisplayName } from "@/services/leadService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth";
 import { Search, Plus, Eye } from "lucide-react";
 
 export const LeadList: React.FC = () => {
@@ -15,19 +14,18 @@ export const LeadList: React.FC = () => {
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   // Check if the user is an admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
         if (user) {
-          const { isAdmin } = useAuth();
           const adminStatus = await isAdmin();
           console.log("Admin check in LeadList:", adminStatus);
-          setIsAdmin(adminStatus);
+          setIsAdminUser(adminStatus);
         }
       } catch (error) {
         console.error("Error checking admin status:", error);
@@ -35,7 +33,7 @@ export const LeadList: React.FC = () => {
     };
 
     checkAdminStatus();
-  }, [user]);
+  }, [user, isAdmin]);
 
   useEffect(() => {
     const fetchLeads = async () => {
@@ -44,7 +42,7 @@ export const LeadList: React.FC = () => {
         
         // If admin, show all leads. Otherwise, filter by user ID
         let userLeads = allLeads;
-        if (!isAdmin && user) {
+        if (!isAdminUser && user) {
           console.log("Filtering leads for non-admin user");
           userLeads = allLeads.filter(lead => lead.assigned_to === user.id);
         } else {
@@ -66,7 +64,7 @@ export const LeadList: React.FC = () => {
     };
 
     fetchLeads();
-  }, [user, isAdmin]);
+  }, [user, isAdminUser]);
 
   useEffect(() => {
     // Filter leads based on search query
@@ -119,7 +117,7 @@ export const LeadList: React.FC = () => {
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
-          {isAdmin ? "All Leads" : "My Leads"}
+          {isAdminUser ? "All Leads" : "My Leads"}
         </CardTitle>
         <Button 
           onClick={() => navigate("/leads/new")}
@@ -169,7 +167,7 @@ export const LeadList: React.FC = () => {
                   <div className="text-sm text-muted-foreground">
                     {lead.company}
                   </div>
-                  {isAdmin && (
+                  {isAdminUser && (
                     <div className="text-xs text-muted-foreground mt-1">
                       Assigned to: {lead.assigned_to || "Unassigned"}
                     </div>
