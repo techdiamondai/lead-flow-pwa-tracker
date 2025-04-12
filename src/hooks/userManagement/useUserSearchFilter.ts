@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { filterUsersByQuery } from "@/utils/userManagementUtils";
 import { User } from "@/types/user.types";
 
@@ -11,8 +11,17 @@ export const useUserSearchFilter = (
   searchQuery: string,
   setFilteredUsers: (users: User[]) => void
 ) => {
+  // Add debounce ref to prevent excessive filtering
+  const filterTimeoutRef = useRef<number | null>(null);
+  
   // Filter users based on search query
   useEffect(() => {
+    // Clear any pending filter operation
+    if (filterTimeoutRef.current) {
+      clearTimeout(filterTimeoutRef.current);
+    }
+    
+    // Validate input
     if (!users || !Array.isArray(users)) {
       console.log("Invalid users array in useUserSearchFilter");
       return;
@@ -23,8 +32,19 @@ export const useUserSearchFilter = (
       return;
     }
     
-    console.log(`Filtering ${users.length} users with query: "${searchQuery}"`);
-    const filteredResults = filterUsersByQuery(users, searchQuery);
-    setFilteredUsers(filteredResults);
+    // Debounce filter operation to prevent excessive rendering
+    filterTimeoutRef.current = window.setTimeout(() => {
+      console.log(`Filtering ${users.length} users with query: "${searchQuery}"`);
+      const filteredResults = filterUsersByQuery(users, searchQuery);
+      setFilteredUsers(filteredResults);
+      filterTimeoutRef.current = null;
+    }, 100);
+    
+    // Clean up timeout
+    return () => {
+      if (filterTimeoutRef.current) {
+        clearTimeout(filterTimeoutRef.current);
+      }
+    };
   }, [searchQuery, users, setFilteredUsers]);
 };

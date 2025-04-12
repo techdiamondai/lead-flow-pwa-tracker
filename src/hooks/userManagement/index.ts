@@ -42,9 +42,6 @@ export const useUserManagement = (): UserManagementHook => {
   // Load users
   const { loadUsers } = useUsersLoader(setUsers, setFilteredUsers, setIsLoading, setError);
   
-  // Handle search filtering
-  useUserSearchFilter(users, searchQuery, setFilteredUsers);
-  
   // Create selection handlers
   const { handleSelectUser, handleSelectAll } = createUserSelectionHandlers(
     filteredUsers,
@@ -62,16 +59,63 @@ export const useUserManagement = (): UserManagementHook => {
     loadUsers
   );
   
-  // Use ref to track if initial load has happened
+  // Track if initial load has happened and component mounted status
   const initialLoadRef = useRef<boolean>(false);
+  const isMountedRef = useRef<boolean>(false);
+  
+  // Handle search filtering - IMPORTANT: Only apply filter when users change
+  // This avoids a circular dependency where filter triggers render which triggers filter
+  useEffect(() => {
+    if (isMountedRef.current && users.length > 0) {
+      // Apply the current search filter to users whenever users change
+      const filteredResults = searchQuery ? 
+        filterUsersByQuery(users, searchQuery) : 
+        users;
+      setFilteredUsers(filteredResults);
+    }
+  }, [users, searchQuery, setFilteredUsers]);
+  
+  // Import filterUsersByQuery directly for this effect
+  const filterUsersByQuery = (users: User[], query: string): User[] => {
+    if (!users || !Array.isArray(users)) {
+      return [];
+    }
+    
+    if (!query || query.trim() === "") {
+      return users;
+    }
+    
+    const normalizedQuery = query.toLowerCase();
+    return users.filter(
+      user =>
+        (user.name && user.name.toLowerCase().includes(normalizedQuery)) ||
+        (user.email && user.email.toLowerCase().includes(normalizedQuery)) ||
+        (user.role && user.role.toLowerCase().includes(normalizedQuery))
+    );
+  };
   
   // Load users on component mount but only once
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (!initialLoadRef.current) {
       console.log("Initial user load triggered");
       initialLoadRef.current = true;
-      loadUsers();
+      
+      // Initial load with a small delay to ensure component is fully mounted
+      const loadTimeout = setTimeout(() => {
+        loadUsers();
+      }, 100);
+      
+      return () => {
+        clearTimeout(loadTimeout);
+        isMountedRef.current = false;
+      };
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [loadUsers]);
   
   return {

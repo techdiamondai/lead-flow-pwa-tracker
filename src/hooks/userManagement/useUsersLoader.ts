@@ -1,5 +1,5 @@
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   fetchUserProfiles, 
@@ -25,14 +25,17 @@ export const useUsersLoader = (
   setError: (error: string | null) => void
 ) => {
   const { toast } = useToast();
+  const isLoadingRef = useRef<boolean>(false);
 
   const loadUsers = useCallback(async () => {
     // Prevent multiple simultaneous loading attempts
-    let isLoadingLocal = false;
-    if (isLoadingLocal) return;
+    if (isLoadingRef.current) {
+      console.log("Already loading users, skipping duplicate request");
+      return;
+    }
     
     try {
-      isLoadingLocal = true;
+      isLoadingRef.current = true;
       console.log("🔄 Starting to load users...");
       setIsLoading(true);
       setError(null);
@@ -81,7 +84,7 @@ export const useUsersLoader = (
       
       console.log("🔢 Total users loaded:", allUsers.length);
       
-      // 5. Update state with loaded users
+      // 5. Update state with loaded users - do this as the last operation
       setUsers(allUsers);
       setFilteredUsers(allUsers);
       
@@ -107,8 +110,12 @@ export const useUsersLoader = (
       setFilteredUsers([testUser]);
       
     } finally {
-      isLoadingLocal = false;
       setIsLoading(false);
+      
+      // Reset loading status with a slight delay to prevent race conditions
+      setTimeout(() => {
+        isLoadingRef.current = false;
+      }, 500);
     }
   }, [setUsers, setFilteredUsers, setIsLoading, setError, toast]);
 

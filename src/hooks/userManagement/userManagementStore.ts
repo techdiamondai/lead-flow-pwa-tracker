@@ -28,17 +28,18 @@ export const useUserManagementStore = (): [
   const [error, setError] = useState<string | null>(null);
   const [isPromoting, setIsPromoting] = useState(false);
 
+  // Completely rewritten to avoid any circular logic
   const updateUserRoleInState = useCallback((userId: string, newRole: string) => {
-    setUsers((currentUsers) => updateUserRole(currentUsers, userId, newRole));
+    setUsers((currentUsers) => {
+      const updatedUsers = updateUserRole(currentUsers, userId, newRole);
+      return updatedUsers;
+    });
+    
+    // Update filtered users separately without referencing users state
     setFilteredUsers((currentFiltered) => {
-      // If search is active, update the filtered view too
-      if (searchQuery) {
-        return updateUserRole(currentFiltered, userId, newRole);
-      }
-      // Return updated state based on the current filtered users
       return updateUserRole(currentFiltered, userId, newRole);
     });
-  }, [searchQuery]);
+  }, []);
 
   return [
     { users, filteredUsers, searchQuery, selectedUsers, isLoading, error, isPromoting },
